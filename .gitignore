@@ -58,3 +58,8 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
+# Packages
+packages/
+
+# Local bot config
+config.ini
