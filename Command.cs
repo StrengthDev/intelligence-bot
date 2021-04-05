@@ -109,7 +109,49 @@ namespace intelligence_bot
 
         public override void execute(EventHandler data)
         {
+            if (data.currentServer == -1 || data.currentChannel == -1)
+            {
+                Console.WriteLine("No server or channel selected.");
+                return;
+            }
             data.channels[data.currentChannel].SendMessageAsync(message).Wait();
+        }
+    }
+
+    class SetStatusCommand : Command
+    {
+        private string status;
+        private int type;
+
+        public SetStatusCommand(string status, int type = 0)
+        {
+            this.status = status;
+            this.type = type == 1 ? 0 : type;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            data.socket.SetActivityAsync(new Game(status, (ActivityType)type)).Wait();
+            Console.WriteLine($"Status set to: {getActivity(type)}{status}");
+        }
+
+        private string getActivity(int i)
+        {
+            switch(i)
+            {
+                case 0:
+                    return "Playing "; // ActivityType.Playing;
+                //case 1:
+                //    return "Streaming "; // ActivityType.Streaming;
+                case 2:
+                    return "Listening "; // ActivityType.Listening;
+                case 3:
+                    return "Watching "; // ActivityType.Watching;
+                case 4:
+                    return ""; // ActivityType.CustomStatus;
+                default:
+                    return "Playing "; // ActivityType.Playing;
+            }
         }
     }
 }

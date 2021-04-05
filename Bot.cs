@@ -21,7 +21,14 @@ namespace intelligence_bot
             this.queue = queue;
             this.config = config;
             socket = new DiscordSocketClient();
-            handler = new EventHandler(socket);
+            bool mentionCmds = false;
+            if (config.ContainsKey("mentionCommands"))
+            {
+                string bt;
+                config.TryGetValue("mentionCommands", out bt);
+                mentionCmds = bool.Parse(bt);
+            }
+            handler = new EventHandler(socket, mentionCmds);
         }
 
         public async Task run()
@@ -53,6 +60,19 @@ namespace intelligence_bot
                 Console.WriteLine("Bot synced");
                 return Task.CompletedTask;
             };
+            if(config.ContainsKey("status"))
+            {
+                string status;
+                int type = 0;
+                if(config.ContainsKey("statusType"))
+                {
+                    string stype;
+                    config.TryGetValue("statusType", out stype);
+                    type = int.Parse(stype);
+                }
+                config.TryGetValue("status", out status);
+                queue.Add(new CommandEvent(new SetStatusCommand(status, type)));
+            }
         }
 
         private async Task shutdown()

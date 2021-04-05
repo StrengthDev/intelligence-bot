@@ -23,7 +23,7 @@ namespace intelligence_bot
             Task running = Task.Run(() => bot.run());
 
             LocalCommandReader lcr = new LocalCommandReader(eventQueue);
-            lcr.run();
+            Task.Run(() => lcr.run());
 
             running.Wait();
         }

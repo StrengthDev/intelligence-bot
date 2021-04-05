@@ -23,8 +23,8 @@ namespace intelligence_bot
             {
                 queue.Add(new CommandEvent(LocalCommandParser.parse(command)));
             }
-            queue.CompleteAdding();
             Console.WriteLine("Exiting..");
+            queue.CompleteAdding();
         }
     }
 }
