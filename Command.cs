@@ -167,7 +167,9 @@ namespace intelligence_bot
 
         public override void execute(EventHandler data)
         {
-            context.Channel.SendMessageAsync("https://github.com/StrengthDev/intelligence-bot");
+            string url;
+            data.config.TryGetValue(ConfigKeyword.SOURCE_LINK, out url);
+            context.Channel.SendMessageAsync(url).Wait();
         }
     }
 
@@ -286,8 +288,55 @@ namespace intelligence_bot
             int attempts = (int)Math.Ceiling(fattempts);
             float chance = (1.0f - (float)Math.Pow(1.0f - x, attempts)) * 100.0f;
             string cs = DiscordUtil.bold(string.Format("{0,0:0.###}%", chance));
-            string message = $"Within {DiscordUtil.bold(attempts)} attempts, an occurence with {x * 100.0f}% absolute chance, reaches a statistical chance of {cs} to happen.";
+            string message = $"Within {DiscordUtil.bold(attempts)} attempts, an occurence with {x * 100.0f}% absolute chance, reaches a statistical chance of about {cs}.";
             context.Channel.SendMessageAsync(message).Wait();
+        }
+    }
+
+    class HelpCommand : Command
+    {
+        private SocketCommandContext context;
+
+        public HelpCommand(SocketCommandContext context)
+        {
+            this.context = context;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            string sarrow = DiscordUtil.bold(">>");
+            string smin = DiscordUtil.highlight("min");
+            string smax = DiscordUtil.highlight("max");
+            string sn = DiscordUtil.highlight("n");
+            string sx = DiscordUtil.highlight("x");
+            string starget = DiscordUtil.highlight("target");
+
+
+            EmbedBuilder embed = new EmbedBuilder();
+            embed.Title = DiscordUtil.italic("Help");
+            embed.Description = "";
+            embed.Color = new Color(15, 150, 255);
+
+
+            EmbedFieldBuilder rng = new EmbedFieldBuilder();
+            string sroll = $"~roll [{smax}] [{sn}] {sarrow} Roll a number between 1 and {smax} (inclusive), {sn} times. ({sn} defaults to 1)\n";
+            string srand = $"~rand [{smin}] [{smax}] {sarrow} Generates a random number between {smin} (inclusive) and {smax} (exclusive).\n";
+            string spick = $"~pick [{sn}] [{smax}] {sarrow} Randomly select {sn} unique elements out of a range between 1 and {smax} (inclusive).\n";
+            rng.Name = "Random Generators";
+            rng.Value = sroll + srand + spick;
+            rng.IsInline = false;
+            embed.AddField(rng);
+            
+            EmbedFieldBuilder math = new EmbedFieldBuilder();
+            string srng = $"~rng [{sx}] [{sn}] {sarrow} Calculate the probability of an occurrence, with an absolute chance of {sx}, to happen at least once in {sn} attempts.\n";
+            string schance = $"~chance [{sx}] [{starget}] {sarrow} Calculate the number of attempts necessary for an occurrence, with an absolute chance of {sx}, to reach the target statistical chance {starget}.\n";
+            math.Name = "Math";
+            math.Value = srng + schance;
+            math.IsInline = false;
+            embed.AddField(math);
+            
+
+            context.Channel.SendMessageAsync(embed: embed.Build()).Wait();
         }
     }
 }

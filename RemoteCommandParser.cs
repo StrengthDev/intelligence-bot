@@ -60,9 +60,9 @@ namespace intelligence_bot
         [Summary("Calculates the chance of an occurrence happening at least once given it's absolute chance and number of attempts.")]
         public async Task RngCommand([Summary("The absolute chance of the occurrence.")] float x, [Summary("The number of attempts.")] int n)
         {
-            if(1 < x || x < 0)
+            if(1 <= x || x <= 0)
             {
-                await DiscordUtil.sendError(Context, "Chance of the occurence has to be between 0 and 1.");
+                await DiscordUtil.sendError(Context, "Chance of the occurence has to be between 0 and 1 (both exclusive).");
                 return;
             }
             if(n < 1)
@@ -94,17 +94,25 @@ namespace intelligence_bot
         [Summary("Calculates the number of attempts after which an occurrence with a given absolute chance reaches the given statistical chance threshold.")]
         public async Task ChanceCommand([Summary("The absolute chance of the occurrence.")] float x, [Summary("The chance threshold to be reached.")] float t)
         {
-            if (1 < x || x < 0)
+            if (1 <= x || x <= 0)
             {
-                await DiscordUtil.sendError(Context, "Chance of the occurence has to be between 0 and 1.");
+                await DiscordUtil.sendError(Context, "Chance of the occurence has to be between 0 and 1 (both exclusive).");
                 return;
             }
-            if (1 < t || t < 0)
+            if (1 <= t || t <= 0)
             {
-                await DiscordUtil.sendError(Context, "Chance threshold has to be between 0 and 1.");
+                await DiscordUtil.sendError(Context, "Chance threshold has to be between 0 and 1 (both exclusive).");
                 return;
             }
             queue.Add(new CommandEvent(new ChanceCommand(Context, x, t)));
+        }
+
+        [Command("help")]
+        [Summary("Describes every command.")]
+        public async Task HelpCommand()
+        {
+            queue.Add(new CommandEvent(new HelpCommand(Context)));
+            await Task.CompletedTask;
         }
     }
 }
