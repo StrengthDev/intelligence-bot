@@ -188,11 +188,106 @@ namespace intelligence_bot
         {
             int x = data.rng.Next(1, max + 1);
             string message = x.ToString();
-            for(int i = 1; i < n; i++)
+            for (int i = 1; i < n; i++)
             {
                 message += $" {data.rng.Next(1, max + 1)}";
             }
             context.Channel.SendMessageAsync(DiscordUtil.code(message)).Wait();
+        }
+    }
+
+    class RandCommand : Command
+    {
+        private SocketCommandContext context;
+        private int min;
+        private int max;
+
+        public RandCommand(SocketCommandContext context, int min, int max)
+        {
+            this.context = context;
+            this.min = min;
+            this.max = max;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            context.Channel.SendMessageAsync(DiscordUtil.bold(data.rng.Next(min, max))).Wait();
+        }
+    }
+
+    class RngCommand : Command
+    {
+        private SocketCommandContext context;
+        private float x;
+        private int n;
+
+        public RngCommand(SocketCommandContext context, float x, int n)
+        {
+            this.context = context;
+            this.x = x;
+            this.n = n;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            float chance = (1.0f - (float)Math.Pow(1.0f - x, n)) * 100.0f;
+            string cs = string.Format("{0,0:0.###}%", chance);
+            context.Channel.SendMessageAsync($"{DiscordUtil.bold(cs)} chance for an occurrence, with an absolute chance of {x * 100.0f}%, to happen at least once after {n} attempts.").Wait();
+        }
+    }
+
+    class PickCommand : Command
+    {
+        private SocketCommandContext context;
+        private int n;
+        private int max;
+
+        public PickCommand(SocketCommandContext context, int n, int max)
+        {
+            this.context = context;
+            this.n = n;
+            this.max = max;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            HashSet<int> set = new HashSet<int>();
+            int x = data.rng.Next(1, max + 1);
+            set.Add(x);
+            string message = x.ToString();
+            while (set.Count() < n)
+            {
+                x = data.rng.Next(1, max + 1);
+                if(set.Add(x))
+                {
+                    message += $" {x}";
+                }
+            }
+            context.Channel.SendMessageAsync(DiscordUtil.code(message)).Wait();
+        }
+    }
+
+    class ChanceCommand : Command
+    {
+        private SocketCommandContext context;
+        private float x;
+        private float t;
+
+        public ChanceCommand(SocketCommandContext context, float x, float t)
+        {
+            this.context = context;
+            this.x = x;
+            this.t = t;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            double fattempts = Math.Log(1.0f - t) / Math.Log(1.0f - x);
+            int attempts = (int)Math.Ceiling(fattempts);
+            float chance = (1.0f - (float)Math.Pow(1.0f - x, attempts)) * 100.0f;
+            string cs = DiscordUtil.bold(string.Format("{0,0:0.###}%", chance));
+            string message = $"Within {DiscordUtil.bold(attempts)} attempts, an occurence with {x * 100.0f}% absolute chance, reaches a statistical chance of {cs} to happen.";
+            context.Channel.SendMessageAsync(message).Wait();
         }
     }
 }

@@ -50,9 +50,10 @@ namespace intelligence_bot
         {
             if(max < min)
             {
-                await DiscordUtil.sendError(Context, "Max cannot be higher than min.");
+                await DiscordUtil.sendError(Context, "Max cannot be lower than min.");
                 return;
             }
+            queue.Add(new CommandEvent(new RandCommand(Context, min, max)));
         }
 
         [Command("rng")]
@@ -61,22 +62,49 @@ namespace intelligence_bot
         {
             if(1 < x || x < 0)
             {
-
+                await DiscordUtil.sendError(Context, "Chance of the occurence has to be between 0 and 1.");
+                return;
             }
+            if(n < 1)
+            {
+                await DiscordUtil.sendError(Context, "The number of attempts has to be atleast 1.");
+                return;
+            }
+            queue.Add(new CommandEvent(new RngCommand(Context, x, n)));
         }
 
         [Command("pick")]
         [Summary("Randomly chooses N unique numbers between 1 and X (inclusive).")]
         public async Task PickCommand([Summary("The amount of numbers to be chosen.")] int n, [Summary("The upper bound of the range from which numbers are chosen.")] int max)
         {
-
+            if (max < 2)
+            {
+                await DiscordUtil.sendError(Context, "Max should be 2 or higher.");
+                return;
+            }
+            if (max < n)
+            {
+                await DiscordUtil.sendError(Context, "Max cannot be lower than the amount of numbers chosen.");
+                return;
+            }
+            queue.Add(new CommandEvent(new PickCommand(Context, n, max)));
         }
 
         [Command("chance")]
         [Summary("Calculates the number of attempts after which an occurrence with a given absolute chance reaches the given statistical chance threshold.")]
         public async Task ChanceCommand([Summary("The absolute chance of the occurrence.")] float x, [Summary("The chance threshold to be reached.")] float t)
         {
-
+            if (1 < x || x < 0)
+            {
+                await DiscordUtil.sendError(Context, "Chance of the occurence has to be between 0 and 1.");
+                return;
+            }
+            if (1 < t || t < 0)
+            {
+                await DiscordUtil.sendError(Context, "Chance threshold has to be between 0 and 1.");
+                return;
+            }
+            queue.Add(new CommandEvent(new ChanceCommand(Context, x, t)));
         }
     }
 }
