@@ -21,14 +21,9 @@ namespace intelligence_bot
             this.queue = queue;
             this.config = config;
             socket = new DiscordSocketClient();
-            bool mentionCmds = false;
-            if (config.ContainsKey("mentionCommands"))
-            {
-                string bt;
-                config.TryGetValue("mentionCommands", out bt);
-                mentionCmds = bool.Parse(bt);
-            }
-            handler = new EventHandler(socket, mentionCmds);
+            Dictionary<string, string> tconfig = new Dictionary<string, string>(config);
+            tconfig.Remove(ConfigKeyword.TOKEN);
+            handler = new EventHandler(socket, tconfig);
         }
 
         public async Task run()
@@ -49,7 +44,7 @@ namespace intelligence_bot
 
             socket.Log += Log;
             string token;
-            if(!config.TryGetValue("token", out token))
+            if(!config.TryGetValue(ConfigKeyword.TOKEN, out token))
             {
                 //TODO exception
             }
@@ -60,17 +55,17 @@ namespace intelligence_bot
                 Console.WriteLine("Bot synced");
                 return Task.CompletedTask;
             };
-            if(config.ContainsKey("status"))
+            if(config.ContainsKey(ConfigKeyword.STATUS))
             {
                 string status;
                 int type = 0;
-                if(config.ContainsKey("statusType"))
+                if(config.ContainsKey(ConfigKeyword.STATUS_TYPE))
                 {
                     string stype;
-                    config.TryGetValue("statusType", out stype);
+                    config.TryGetValue(ConfigKeyword.STATUS_TYPE, out stype);
                     type = int.Parse(stype);
                 }
-                config.TryGetValue("status", out status);
+                config.TryGetValue(ConfigKeyword.STATUS, out status);
                 queue.Add(new CommandEvent(new SetStatusCommand(status, type)));
             }
         }

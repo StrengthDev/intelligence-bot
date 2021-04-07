@@ -22,6 +22,8 @@ namespace intelligence_bot
             Bot bot = new Bot(eventQueue, config);
             Task running = Task.Run(() => bot.run());
 
+            RemoteCommandParser.SetQueue(eventQueue);
+
             LocalCommandReader lcr = new LocalCommandReader(eventQueue);
             Task.Run(() => lcr.run());
 

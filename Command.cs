@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 
 namespace intelligence_bot
@@ -152,6 +153,46 @@ namespace intelligence_bot
                 default:
                     return "Playing "; // ActivityType.Playing;
             }
+        }
+    }
+
+    class SourceCommand : Command
+    {
+        private SocketCommandContext context;
+
+        public SourceCommand(SocketCommandContext context)
+        {
+            this.context = context;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            context.Channel.SendMessageAsync("https://github.com/StrengthDev/intelligence-bot");
+        }
+    }
+
+    class RollCommand : Command
+    {
+        private SocketCommandContext context;
+        private int max;
+        private int n;
+
+        public RollCommand(SocketCommandContext context, int max, int n)
+        {
+            this.context = context;
+            this.max = max;
+            this.n = n;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            int x = data.rng.Next(1, max + 1);
+            string message = x.ToString();
+            for(int i = 1; i < n; i++)
+            {
+                message += $" {data.rng.Next(1, max + 1)}";
+            }
+            context.Channel.SendMessageAsync(DiscordUtil.code(message)).Wait();
         }
     }
 }

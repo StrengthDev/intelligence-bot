@@ -19,9 +19,12 @@ namespace intelligence_bot
 
         public int currentServer { get; set; }
         public int currentChannel { get; set; }
+
+        public Dictionary<string, string> config;
+        public Random rng;
         private char prefix = '~';
 
-        public EventHandler(DiscordSocketClient socket, bool mentionCmds)
+        public EventHandler(DiscordSocketClient socket, Dictionary<string, string> config)
         {
             this.socket = socket;
             servers = null;
@@ -30,13 +33,22 @@ namespace intelligence_bot
             currentChannel = -1;
             //TODO configuration
             cmdService = new CommandService();
-            if(mentionCmds)
+            this.config = config;
+            bool mentionCmds = false;
+            if (config.ContainsKey(ConfigKeyword.MENTION_COMMANDS))
+            {
+                string bt;
+                config.TryGetValue(ConfigKeyword.MENTION_COMMANDS, out bt);
+                mentionCmds = bool.Parse(bt);
+            }
+            if (mentionCmds)
             {
                 socket.MessageReceived += remoteCommandWithMention;
             } else
             {
                 socket.MessageReceived += remoteCommand;
             }
+            rng = new Random();
             cmdService.AddModulesAsync(Assembly.GetEntryAssembly(), null).Wait();
         }
 
