@@ -135,53 +135,54 @@ namespace intelligence_bot
         private static double parseExpression(string expression)
         {
             string trimmed = expression.Trim();
-            while(trimmed.StartsWith(OPEN.ToString()) && trimmed.EndsWith(CLOSE.ToString()))
+            int scopel;
+            while((scopel = scopeLength(trimmed)) == trimmed.Length - 2)
             {
                 trimmed = trimmed.Substring(1, trimmed.Length - 2);
             }
 
             int index = -1;
-            if (trimmed.StartsWith(COS))
+            if (trimmed.StartsWith(COS) && scopel == (trimmed.Length - COS.Length - 2))
             {
                 index = COS.Length + 1;
                 return Math.Cos(parseExpression(trimmed.Substring(index, trimmed.Length - index - 1)));
             }
-            if (trimmed.StartsWith(SIN))
+            if (trimmed.StartsWith(SIN) && scopel == (trimmed.Length - SIN.Length - 2))
             {
                 index = SIN.Length + 1;
                 return Math.Sin(parseExpression(trimmed.Substring(index, trimmed.Length - index - 1)));
             }
-            if (trimmed.StartsWith(TAN))
+            if (trimmed.StartsWith(TAN) && scopel == (trimmed.Length - TAN.Length - 2))
             {
                 index = TAN.Length + 1;
                 return Math.Tan(parseExpression(trimmed.Substring(index, trimmed.Length - index - 1)));
             }
-            if (trimmed.StartsWith(ACOS))
+            if (trimmed.StartsWith(ACOS) && scopel == (trimmed.Length - ACOS.Length - 2))
             {
                 index = ACOS.Length + 1;
                 return Math.Acos(parseExpression(trimmed.Substring(index, trimmed.Length - index - 1)));
             }
-            if (trimmed.StartsWith(ASIN))
+            if (trimmed.StartsWith(ASIN) && scopel == (trimmed.Length - ASIN.Length - 2))
             {
                 index = ASIN.Length + 1;
                 return Math.Asin(parseExpression(trimmed.Substring(index, trimmed.Length - index - 1)));
             }
-            if (trimmed.StartsWith(ATAN))
+            if (trimmed.StartsWith(ATAN) && scopel == (trimmed.Length - ATAN.Length - 2))
             {
                 index = ATAN.Length + 1;
                 return Math.Cos(parseExpression(trimmed.Substring(index, trimmed.Length - index - 1)));
             }
-            if (trimmed.StartsWith(LOG))
+            if (trimmed.StartsWith(LOG) && scopel == (trimmed.Length - LOG.Length - 2))
             {
                 index = LOG.Length + 1;
                 return Math.Log(parseExpression(trimmed.Substring(index, trimmed.Length - index - 1)));
             }
-            if (trimmed.StartsWith(CEIL))
+            if (trimmed.StartsWith(CEIL) && scopel == (trimmed.Length - CEIL.Length - 2))
             {
                 index = CEIL.Length + 1;
                 return Math.Ceiling(parseExpression(trimmed.Substring(index, trimmed.Length - index - 1)));
             }
-            if (trimmed.StartsWith(FLOOR))
+            if (trimmed.StartsWith(FLOOR) && scopel == (trimmed.Length - FLOOR.Length - 2))
             {
                 index = FLOOR.Length + 1;
                 return Math.Floor(parseExpression(trimmed.Substring(index, trimmed.Length - index - 1)));
@@ -248,6 +249,10 @@ namespace intelligence_bot
                     }
                 }
             }
+            if (depth != 0)
+            {
+                throw new ArgumentException();
+            }
             string left = trimmed.Substring(0, pindex);
             string right = trimmed.Substring(pindex + 1, trimmed.Length - pindex - 1);
             switch (prio)
@@ -266,6 +271,33 @@ namespace intelligence_bot
                     return Math.Pow(parseExpression(left), parseExpression(right));
             }
             return trimmed == PI ? Math.PI : double.Parse(trimmed);
+        }
+
+        private static int scopeLength(string expression)
+        {
+            int index = -1;
+            int open = -1;
+            int depth = 0;
+            foreach(char c in expression)
+            {
+                index++;
+                if(c == OPEN)
+                {
+                    depth++;
+                    if(open == -1)
+                    {
+                        open = index;
+                    }
+                } else if(c == CLOSE)
+                {
+                    depth--;
+                }
+                if (open != -1 && depth == 0)
+                {
+                    break;
+                }
+            }
+            return index - open - 1;
         }
     }
 }

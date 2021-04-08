@@ -334,7 +334,7 @@ namespace intelligence_bot
             math.Value = srng + schance;
             math.IsInline = false;
             embed.AddField(math);
-            
+            //TODO add expression
 
             context.Channel.SendMessageAsync(embed: embed.Build()).Wait();
         }
