@@ -23,7 +23,7 @@ namespace intelligence_bot
             socket = new DiscordSocketClient();
             Dictionary<string, string> tconfig = new Dictionary<string, string>(config);
             tconfig.Remove(ConfigKeyword.TOKEN);
-            handler = new EventHandler(socket, tconfig);
+            handler = new EventHandler(queue, socket, tconfig);
         }
 
         public async Task run()

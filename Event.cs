@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Discord.Commands;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -33,6 +34,16 @@ namespace intelligence_bot
         public CommandEvent(Command com) : base(EventType.COMMAND)
         {
             this.com = com;
+        }
+    }
+
+    class MessageEvent : Event
+    {
+        public SocketCommandContext context { get; private set; }
+
+        public MessageEvent(SocketCommandContext context) : base(EventType.MESSAGE)
+        {
+            this.context = context;
         }
     }
 }
