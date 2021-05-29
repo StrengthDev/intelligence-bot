@@ -7,6 +7,8 @@
         public static string INVITE_LINK = "url";
         public static string SOURCE_LINK = "source";
 
+        public static string GDB_LOC = "gameDBLocation";
+
         public static string STATUS = "status";
         public static string STATUS_TYPE = "statusType";
 

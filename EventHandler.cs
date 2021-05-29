@@ -22,6 +22,8 @@ namespace intelligence_bot
         public int currentServer { get; set; }
         public int currentChannel { get; set; }
 
+        public GameDatabase db { get; private set; }
+
         public Dictionary<string, string> config;
         public Random rng;
         private char prefix = '~';
@@ -51,6 +53,8 @@ namespace intelligence_bot
             {
                 socket.MessageReceived += remoteCommand;
             }
+            //db = new GameDatabase(ConfigKeyword.GDB_LOC); //TODO: uncomment after fully implementing game database
+            //db.load();
             rng = new Random();
             cmdService.AddModulesAsync(Assembly.GetEntryAssembly(), null).Wait();
         }
@@ -108,8 +112,13 @@ namespace intelligence_bot
             {
                 double result = parseExpression(context.Message.Content.ToLower());
                 context.Channel.SendMessageAsync(DiscordUtil.bold(string.Format("{0,0:0.###}", result))).Wait();
-            } catch (Exception e) { }
-
+            } catch (Exception e) { } finally
+            {
+                if(context.Message.Content.Trim() == "\U0001F449 \U0001F449")
+                {
+                    context.Channel.SendMessageAsync(":point_left: :point_left:").Wait();
+                }
+            }
         }
 
         private const char PLUS = '+';
@@ -123,6 +132,8 @@ namespace intelligence_bot
         private const char CLOSE = ')';
 
         private const string PI = "pi";
+        private const string E = "e";
+
         private const string COS = "cos";
         private const string SIN = "sin";
         private const string TAN = "tan";
@@ -132,7 +143,10 @@ namespace intelligence_bot
         private const string LOG = "log";
         private const string CEIL = "ceil";
         private const string FLOOR = "floor";
-        private static double parseExpression(string expression)
+
+        private const string ROLL = "roll";
+        private const string RAND = "rand";
+        private double parseExpression(string expression)
         {
             string trimmed = expression.Trim();
             int scopel;
@@ -186,6 +200,16 @@ namespace intelligence_bot
             {
                 index = FLOOR.Length + 1;
                 return Math.Floor(parseExpression(trimmed.Substring(index, trimmed.Length - index - 1)));
+            }
+            if (trimmed.StartsWith(ROLL) && scopel == (trimmed.Length - ROLL.Length - 2))
+            {
+                index = ROLL.Length + 1;
+                return Math.Floor(rng.NextDouble() * parseExpression(trimmed.Substring(index, trimmed.Length - index - 1))) + 1.0d;
+            }
+            if (trimmed.StartsWith(RAND) && scopel == (trimmed.Length - RAND.Length - 2))
+            {
+                index = RAND.Length + 1;
+                return rng.NextDouble() * parseExpression(trimmed.Substring(index, trimmed.Length - index - 1));
             }
 
             int depth = 0;
@@ -260,6 +284,7 @@ namespace intelligence_bot
                 case PLUS:
                     return parseExpression(left) + parseExpression(right);
                 case MINUS:
+                    left = left.Length == 0 ? "0" : left;
                     return parseExpression(left) - parseExpression(right);
                 case MULT:
                     return parseExpression(left) * parseExpression(right);
@@ -270,7 +295,15 @@ namespace intelligence_bot
                 case EXP:
                     return Math.Pow(parseExpression(left), parseExpression(right));
             }
-            return trimmed == PI ? Math.PI : double.Parse(trimmed);
+            switch(trimmed)
+            {
+                case PI:
+                    return Math.PI;
+                case E:
+                    return Math.E;
+                default:
+                    return double.Parse(trimmed);
+            }
         }
 
         private static int scopeLength(string expression)

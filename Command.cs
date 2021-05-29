@@ -169,7 +169,7 @@ namespace intelligence_bot
         {
             string url;
             data.config.TryGetValue(ConfigKeyword.SOURCE_LINK, out url);
-            context.Channel.SendMessageAsync(url).Wait();
+            DiscordUtil.reply(context, url).Wait();
         }
     }
 
@@ -194,7 +194,7 @@ namespace intelligence_bot
             {
                 message += $" {data.rng.Next(1, max + 1)}";
             }
-            context.Channel.SendMessageAsync(DiscordUtil.code(message)).Wait();
+            DiscordUtil.reply(context, DiscordUtil.code(message)).Wait();
         }
     }
 
@@ -213,7 +213,7 @@ namespace intelligence_bot
 
         public override void execute(EventHandler data)
         {
-            context.Channel.SendMessageAsync(DiscordUtil.bold(data.rng.Next(min, max))).Wait();
+            DiscordUtil.reply(context, DiscordUtil.bold(data.rng.Next(min, max))).Wait();
         }
     }
 
@@ -234,7 +234,7 @@ namespace intelligence_bot
         {
             float chance = (1.0f - (float)Math.Pow(1.0f - x, n)) * 100.0f;
             string cs = string.Format("{0,0:0.###}%", chance);
-            context.Channel.SendMessageAsync($"{DiscordUtil.bold(cs)} chance for an occurrence, with an absolute chance of {x * 100.0f}%, to happen at least once after {n} attempts.").Wait();
+            DiscordUtil.reply(context, $"{DiscordUtil.bold(cs)} chance for an occurrence, with an absolute chance of {x * 100.0f}%, to happen at least once after {n} attempts.").Wait();
         }
     }
 
@@ -265,7 +265,7 @@ namespace intelligence_bot
                     message += $" {x}";
                 }
             }
-            context.Channel.SendMessageAsync(DiscordUtil.code(message)).Wait();
+            DiscordUtil.reply(context, DiscordUtil.code(message)).Wait();
         }
     }
 
@@ -289,7 +289,7 @@ namespace intelligence_bot
             float chance = (1.0f - (float)Math.Pow(1.0f - x, attempts)) * 100.0f;
             string cs = DiscordUtil.bold(string.Format("{0,0:0.###}%", chance));
             string message = $"Within {DiscordUtil.bold(attempts)} attempts, an occurence with {x * 100.0f}% absolute chance, reaches a statistical chance of about {cs}.";
-            context.Channel.SendMessageAsync(message).Wait();
+            DiscordUtil.reply(context, message).Wait();
         }
     }
 
@@ -310,6 +310,7 @@ namespace intelligence_bot
             string sn = DiscordUtil.highlight("n");
             string sx = DiscordUtil.highlight("x");
             string starget = DiscordUtil.highlight("target");
+            string exp = DiscordUtil.highlight("expression");
 
 
             EmbedBuilder embed = new EmbedBuilder();
@@ -330,13 +331,131 @@ namespace intelligence_bot
             EmbedFieldBuilder math = new EmbedFieldBuilder();
             string srng = $"~rng [{sx}] [{sn}] {sarrow} Calculate the probability of an occurrence, with an absolute chance of {sx}, to happen at least once in {sn} attempts.\n";
             string schance = $"~chance [{sx}] [{starget}] {sarrow} Calculate the number of attempts necessary for an occurrence, with an absolute chance of {sx}, to reach the target statistical chance {starget}.\n";
+            string calc = $"[{exp}] {sarrow} Calculate the value of the expression.\n";
             math.Name = "Math";
-            math.Value = srng + schance;
+            math.Value = srng + schance + calc;
             math.IsInline = false;
             embed.AddField(math);
-            //TODO add expression
+            
+            DiscordUtil.reply(context, embed: embed.Build()).Wait();
+        }
+    }
 
-            context.Channel.SendMessageAsync(embed: embed.Build()).Wait();
+    class EmojiCommand : Command
+    {
+        private SocketCommandContext context;
+        private string emoji;
+
+        public EmojiCommand(SocketCommandContext context, string emoji)
+        {
+            this.context = context;
+            this.emoji = emoji;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            string unicode = string.Format("\\U{0:X8}", char.ConvertToUtf32(emoji.ElementAt(0), emoji.ElementAt(1)));
+            DiscordUtil.reply(context, DiscordUtil.bold(unicode)).Wait();
+        }
+    }
+
+    class GameSListCommand : Command
+    {
+        private SocketCommandContext context;
+
+        public GameSListCommand(SocketCommandContext context)
+        {
+            this.context = context;
+        }
+
+        public override void execute(EventHandler data)
+        {
+
+        }
+    }
+
+    class GamePListCommand : Command
+    {
+        private SocketCommandContext context;
+        SocketUser user;
+
+        public GamePListCommand(SocketCommandContext context, SocketUser user)
+        {
+            this.context = context;
+            this.user = user;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            
+        }
+    }
+
+    class GameAddCommand : Command
+    {
+        private SocketCommandContext context;
+        private string game;
+
+        public GameAddCommand(SocketCommandContext context, string game)
+        {
+            this.context = context;
+            this.game = game;
+        }
+
+        public override void execute(EventHandler data)
+        {
+
+        }
+    }
+
+    class GameRemoveCommand : Command
+    {
+        private SocketCommandContext context;
+        private string game;
+
+        public GameRemoveCommand(SocketCommandContext context, string game)
+        {
+            this.context = context;
+            this.game = game;
+        }
+
+        public override void execute(EventHandler data)
+        {
+
+        }
+    }
+
+    class GameBuyCommand : Command
+    {
+        private SocketCommandContext context;
+        private string game;
+
+        public GameBuyCommand(SocketCommandContext context, string game)
+        {
+            this.context = context;
+            this.game = game;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            SocketUser user = context.User;
+        }
+    }
+
+    class GameSellCommand : Command
+    {
+        private SocketCommandContext context;
+        private string game;
+
+        public GameSellCommand(SocketCommandContext context, string game)
+        {
+            this.context = context;
+            this.game = game;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            SocketUser user = context.User;
         }
     }
 }
