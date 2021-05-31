@@ -54,7 +54,7 @@ namespace intelligence_bot
         {
             EmbedBuilder e = new EmbedBuilder();
             e.Color = new Color(255, 0, 0);
-            e.Title = "Error";
+            e.Title = EmojiUnicode.WARNING + "   Error";
             e.Description = message;
             await context.Channel.SendMessageAsync(embed: e.Build());
         }
@@ -63,17 +63,17 @@ namespace intelligence_bot
         {
             EmbedBuilder e = new EmbedBuilder();
             e.Color = new Color(255, 0, 0);
-            e.Title = "Error";
+            e.Title = EmojiUnicode.WARNING + "   Error";
             e.Description = message;
             await context.Message.ReplyAsync(embed: e.Build(), allowedMentions: ping ? null : new AllowedMentions(AllowedMentionTypes.None));
         }
 
-        public static async Task sendMessage(SocketCommandContext context, String text = null, Embed embed = null)
+        public static async Task sendMessage(SocketCommandContext context, string text = null, Embed embed = null)
         {
             await context.Channel.SendMessageAsync(text: text, embed: embed);
         }
 
-        public static async Task reply(SocketCommandContext context, String text = null, Embed embed = null, bool ping = false)
+        public static async Task reply(SocketCommandContext context, string text = null, Embed embed = null, bool ping = false)
         {
             await context.Message.ReplyAsync(text: text, embed: embed, allowedMentions: ping ? null : new AllowedMentions(AllowedMentionTypes.None));
         }

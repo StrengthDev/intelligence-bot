@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -14,6 +15,7 @@ namespace intelligence_bot
         public virtual void execute(EventHandler data) { }
     }
 
+    #region Local
     class LServersCommand : Command
     {
         public LServersCommand() { }
@@ -155,7 +157,49 @@ namespace intelligence_bot
             }
         }
     }
+    #endregion
 
+    #region Generics
+    class MessageCommand : Command
+    {
+        private SocketCommandContext context;
+        private string message;
+        private Embed embed;
+
+        public MessageCommand(SocketCommandContext context, string message = null, Embed embed = null)
+        {
+            this.context = context;
+            this.message = message;
+            this.embed = embed;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            DiscordUtil.sendMessage(context, message, embed).Wait();
+        }
+    }
+
+    class ReplyCommand : Command
+    {
+        private SocketCommandContext context;
+        private string message;
+        private Embed embed;
+
+        public ReplyCommand(SocketCommandContext context, string message = null, Embed embed = null)
+        {
+            this.context = context;
+            this.message = message;
+            this.embed = embed;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            DiscordUtil.reply(context, message, embed, true).Wait();
+        }
+    }
+    #endregion
+
+    #region Miscellaneous
     class SourceCommand : Command
     {
         private SocketCommandContext context;
@@ -173,6 +217,99 @@ namespace intelligence_bot
         }
     }
 
+    class HelpCommand : Command
+    {
+        private SocketCommandContext context;
+
+        public HelpCommand(SocketCommandContext context)
+        {
+            this.context = context;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            string sarrow = DiscordUtil.bold(">>");
+            string smin = DiscordUtil.highlight("min");
+            string smax = DiscordUtil.highlight("max");
+            string sn = DiscordUtil.highlight("n");
+            string sx = DiscordUtil.highlight("x");
+            string starget = DiscordUtil.highlight("target");
+            string exp = DiscordUtil.highlight("expression");
+
+
+            EmbedBuilder embed = new EmbedBuilder();
+            embed.Title = DiscordUtil.italic("Help");
+            embed.Description = "";
+            embed.Color = new Color(15, 150, 255);
+
+
+            EmbedFieldBuilder rng = new EmbedFieldBuilder();
+            string sroll = $"~roll [{smax}] [{sn}] {sarrow} Roll a number between 1 and {smax} (inclusive), {sn} times. ({sn} defaults to 1)\n";
+            string srand = $"~rand [{smin}] [{smax}] {sarrow} Generates a random number between {smin} (inclusive) and {smax} (exclusive).\n";
+            string spick = $"~pick [{sn}] [{smax}] {sarrow} Randomly select {sn} unique elements out of a range between 1 and {smax} (inclusive).\n";
+            rng.Name = "Random Generators";
+            rng.Value = sroll + srand + spick;
+            rng.IsInline = false;
+            embed.AddField(rng);
+            
+            EmbedFieldBuilder math = new EmbedFieldBuilder();
+            string srng = $"~rng [{sx}] [{sn}] {sarrow} Calculate the probability of an occurrence, with an absolute chance of {sx}, to happen at least once in {sn} attempts.\n";
+            string schance = $"~chance [{sx}] [{starget}] {sarrow} Calculate the number of attempts necessary for an occurrence, with an absolute chance of {sx}, to reach the target statistical chance {starget}.\n";
+            string calc = $"[{exp}] {sarrow} Calculate the value of the expression.\n";
+            math.Name = "Math";
+            math.Value = srng + schance + calc;
+            math.IsInline = false;
+            embed.AddField(math);
+            
+            DiscordUtil.reply(context, embed: embed.Build()).Wait();
+        }
+    }
+
+    class EmojiCommand : Command
+    {
+        private SocketCommandContext context;
+        private string emoji;
+
+        public EmojiCommand(SocketCommandContext context, string emoji)
+        {
+            this.context = context;
+            this.emoji = emoji;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            string unicode = string.Format("\\U{0:X8}", char.ConvertToUtf32(emoji, 0));
+            DiscordUtil.reply(context, DiscordUtil.bold(unicode)).Wait();
+        }
+    }
+
+    class TimerCommand : Command
+    {
+        private SocketCommandContext context;
+        private int minutes;
+        private string message;
+
+        public TimerCommand(SocketCommandContext context, int minutes, string message)
+        {
+            this.context = context;
+            this.minutes = minutes;
+            this.message = message;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            string tm = message != null && message.Trim() != "" ? DiscordUtil.bold("Beep Beep: ") + DiscordUtil.highlight(message.Replace("*", "").Replace("_", "").Replace("`", "").Replace("|", "")) : DiscordUtil.bold("Beep Beep.");
+            Task.Run(() => {
+                TimeSpan time = new TimeSpan(0, minutes, 0);
+                Thread.Sleep(time);
+                data.queue.Add(new CommandEvent(new ReplyCommand(context, tm)));
+            });
+            context.Message.AddReactionAsync(new Emoji(EmojiUnicode.TIMER));
+        }
+    }
+    #endregion
+
+    #region Math
     class RollCommand : Command
     {
         private SocketCommandContext context;
@@ -292,73 +429,9 @@ namespace intelligence_bot
             DiscordUtil.reply(context, message).Wait();
         }
     }
+    #endregion
 
-    class HelpCommand : Command
-    {
-        private SocketCommandContext context;
-
-        public HelpCommand(SocketCommandContext context)
-        {
-            this.context = context;
-        }
-
-        public override void execute(EventHandler data)
-        {
-            string sarrow = DiscordUtil.bold(">>");
-            string smin = DiscordUtil.highlight("min");
-            string smax = DiscordUtil.highlight("max");
-            string sn = DiscordUtil.highlight("n");
-            string sx = DiscordUtil.highlight("x");
-            string starget = DiscordUtil.highlight("target");
-            string exp = DiscordUtil.highlight("expression");
-
-
-            EmbedBuilder embed = new EmbedBuilder();
-            embed.Title = DiscordUtil.italic("Help");
-            embed.Description = "";
-            embed.Color = new Color(15, 150, 255);
-
-
-            EmbedFieldBuilder rng = new EmbedFieldBuilder();
-            string sroll = $"~roll [{smax}] [{sn}] {sarrow} Roll a number between 1 and {smax} (inclusive), {sn} times. ({sn} defaults to 1)\n";
-            string srand = $"~rand [{smin}] [{smax}] {sarrow} Generates a random number between {smin} (inclusive) and {smax} (exclusive).\n";
-            string spick = $"~pick [{sn}] [{smax}] {sarrow} Randomly select {sn} unique elements out of a range between 1 and {smax} (inclusive).\n";
-            rng.Name = "Random Generators";
-            rng.Value = sroll + srand + spick;
-            rng.IsInline = false;
-            embed.AddField(rng);
-            
-            EmbedFieldBuilder math = new EmbedFieldBuilder();
-            string srng = $"~rng [{sx}] [{sn}] {sarrow} Calculate the probability of an occurrence, with an absolute chance of {sx}, to happen at least once in {sn} attempts.\n";
-            string schance = $"~chance [{sx}] [{starget}] {sarrow} Calculate the number of attempts necessary for an occurrence, with an absolute chance of {sx}, to reach the target statistical chance {starget}.\n";
-            string calc = $"[{exp}] {sarrow} Calculate the value of the expression.\n";
-            math.Name = "Math";
-            math.Value = srng + schance + calc;
-            math.IsInline = false;
-            embed.AddField(math);
-            
-            DiscordUtil.reply(context, embed: embed.Build()).Wait();
-        }
-    }
-
-    class EmojiCommand : Command
-    {
-        private SocketCommandContext context;
-        private string emoji;
-
-        public EmojiCommand(SocketCommandContext context, string emoji)
-        {
-            this.context = context;
-            this.emoji = emoji;
-        }
-
-        public override void execute(EventHandler data)
-        {
-            string unicode = string.Format("\\U{0:X8}", char.ConvertToUtf32(emoji.ElementAt(0), emoji.ElementAt(1)));
-            DiscordUtil.reply(context, DiscordUtil.bold(unicode)).Wait();
-        }
-    }
-
+    #region Games
     class GameSListCommand : Command
     {
         private SocketCommandContext context;
@@ -458,4 +531,5 @@ namespace intelligence_bot
             SocketUser user = context.User;
         }
     }
+    #endregion
 }

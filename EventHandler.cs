@@ -111,12 +111,12 @@ namespace intelligence_bot
             try
             {
                 double result = parseExpression(context.Message.Content.ToLower());
-                context.Channel.SendMessageAsync(DiscordUtil.bold(string.Format("{0,0:0.###}", result))).Wait();
+                DiscordUtil.reply(context, DiscordUtil.bold(string.Format("{0,0:0.###}", result))).Wait();
             } catch (Exception e) { } finally
             {
-                if(context.Message.Content.Trim() == "\U0001F449 \U0001F449")
+                if(context.Message.Content.Trim() == (EmojiUnicode.POINT_RIGHT + ' ' + EmojiUnicode.POINT_RIGHT))
                 {
-                    context.Channel.SendMessageAsync(":point_left: :point_left:").Wait();
+                    DiscordUtil.sendMessage(context, ":point_left: :point_left:").Wait();
                 }
             }
         }

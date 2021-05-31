@@ -118,14 +118,32 @@ namespace intelligence_bot
 
         [Command("emoji")]
         [Summary("Lists information about the emoji.")]
-        public async Task EmojiCommand([Remainder] [Summary("Emoji to be analyzed.")] string emoji)
+        public async Task EmojiCommand([Remainder][Summary("Emoji to be analyzed.")] string emoji)
         {
             string e = emoji.Trim();
-            if(e.Length != 2)
+            if (e.Length != 2)
             {
                 await DiscordUtil.replyError(Context, "Not an Emote.");
+                return;
             }
             queue.Add(new CommandEvent(new EmojiCommand(Context, e)));
+        }
+
+        [Command("timer")]
+        [Summary("Sets a timer, after which the user is pinged.")]
+        public async Task EmojiCommand([Summary("Minutes to wait.")] int minutes, [Remainder][Summary("Message of the timer.")] string message = null)
+        {
+            if (minutes < 1)
+            {
+                await DiscordUtil.replyError(Context, "Invalid number.");
+                return;
+            }
+            if (minutes > 1440)
+            {
+                await DiscordUtil.replyError(Context, "Time limited to at most, 24 hours.");
+                return;
+            }
+            queue.Add(new CommandEvent(new TimerCommand(Context, minutes, message)));
         }
     }
 
