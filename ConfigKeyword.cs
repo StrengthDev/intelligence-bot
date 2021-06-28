@@ -13,5 +13,8 @@
         public static string STATUS_TYPE = "statusType";
 
         public static string MENTION_COMMANDS = "mentionCommands";
+        public static string ANSWERS = "answers";
+        public static char ANSWER_SEPERATOR = '\\';
+        public static char VALUE_SEPERATOR = '-';
     }
 }

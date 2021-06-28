@@ -118,7 +118,7 @@ namespace intelligence_bot
             db.players.TryGetValue(id, out Player user);
             return user.games.ToArray();
         }
-
+        //TODO: use IO file isntead of loading files here
         public void save()
         {
             if(db == null)

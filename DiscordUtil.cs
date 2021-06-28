@@ -40,7 +40,7 @@ namespace intelligence_bot
             return $"~~{v}~~";
         }
 
-        public static string code<T>(T v)
+        public static string code<T>(T v) //supported languages: https://gist.github.com/matthewzring/9f7bbfd102003963f9be7dbcf7d40e51
         {
             return $"```{v}```";
         }
@@ -48,6 +48,56 @@ namespace intelligence_bot
         public static string spoiler<T>(T v)
         {
             return $"||{v}||";
+        }
+
+        public static string line_quote<T>(T v)
+        {
+            return $"> {v}";
+        }
+
+        public static string full_quote<T>(T v)
+        {
+            return $">>> {v}";
+        }
+
+        public static string statusString(int i)
+        {
+            switch (i)
+            {
+                case 0:
+                    return "Offline"; // UserStatus.Offline;
+                case 1:
+                    return "Online"; // UserStatus.Online;
+                case 2:
+                    return "Idle"; // UserStatus.Idle;
+                case 3:
+                    return "Away from keyboard"; // UserStatus.AFK;
+                case 4:
+                    return "Do not disturb"; // UserStatus.DoNotDisturb;
+                case 5:
+                    return "Invisible"; // UserStatus.Invisible;
+                default:
+                    return "Offline"; // UserStatus.Offline;
+            }
+        }
+
+        public static string activityString(int i)
+        {
+            switch (i)
+            {
+                case 0:
+                    return "Playing"; // ActivityType.Playing;
+                case 1:
+                    return "Streaming"; // ActivityType.Streaming;
+                case 2:
+                    return "Listening to"; // ActivityType.Listening;
+                case 3:
+                    return "Watching"; // ActivityType.Watching;
+                case 4:
+                    return ""; // ActivityType.CustomStatus;
+                default:
+                    return "Playing"; // ActivityType.Playing;
+            }
         }
 
         public static async Task sendError(SocketCommandContext context, string message)

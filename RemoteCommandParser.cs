@@ -19,15 +19,6 @@ namespace intelligence_bot
             RemoteCommandParser.queue = queue;
         }
 
-        [Command("source")]
-        [Alias("github")]
-        [Summary("Returns the link to my public repository.")]
-        public async Task SourceCommand()
-        {
-            queue.Add(new CommandEvent(new SourceCommand(Context)));
-            await Task.CompletedTask;
-        }
-
         [Command("roll")]
         [Summary("Randomly picks a number between 1 and a specified number inclusively, N (default: 1) times.")]
         public async Task RollCommand([Summary("The upper bound of the generation range.")] int max, [Summary("The (optional) amount of numbers rolled.")]  int n = 1)
@@ -57,23 +48,6 @@ namespace intelligence_bot
             queue.Add(new CommandEvent(new RandCommand(Context, min, max)));
         }
 
-        [Command("rng")]
-        [Summary("Calculates the chance of an occurrence happening at least once given it's absolute chance and number of attempts.")]
-        public async Task RngCommand([Summary("The absolute chance of the occurrence.")] float x, [Summary("The number of attempts.")] int n)
-        {
-            if(1 <= x || x <= 0)
-            {
-                await DiscordUtil.replyError(Context, "Chance of the occurence has to be between 0 and 1 (both exclusive).");
-                return;
-            }
-            if(n < 1)
-            {
-                await DiscordUtil.replyError(Context, "The number of attempts has to be atleast 1.");
-                return;
-            }
-            queue.Add(new CommandEvent(new RngCommand(Context, x, n)));
-        }
-
         [Command("pick")]
         [Summary("Randomly chooses N unique numbers between 1 and X (inclusive).")]
         public async Task PickCommand([Summary("The amount of numbers to be chosen.")] int n, [Summary("The upper bound of the range from which numbers are chosen.")] int max)
@@ -89,6 +63,23 @@ namespace intelligence_bot
                 return;
             }
             queue.Add(new CommandEvent(new PickCommand(Context, n, max)));
+        }
+
+        [Command("rng")]
+        [Summary("Calculates the chance of an occurrence happening at least once given it's absolute chance and number of attempts.")]
+        public async Task RngCommand([Summary("The absolute chance of the occurrence.")] float x, [Summary("The number of attempts.")] int n)
+        {
+            if(1 <= x || x <= 0)
+            {
+                await DiscordUtil.replyError(Context, "Chance of the occurence has to be between 0 and 1 (both exclusive).");
+                return;
+            }
+            if(n < 1)
+            {
+                await DiscordUtil.replyError(Context, "The number of attempts has to be atleast 1.");
+                return;
+            }
+            queue.Add(new CommandEvent(new RngCommand(Context, x, n)));
         }
 
         [Command("chance")]
@@ -116,17 +107,22 @@ namespace intelligence_bot
             await Task.CompletedTask;
         }
 
-        [Command("emoji")]
-        [Summary("Lists information about the emoji.")]
-        public async Task EmojiCommand([Remainder][Summary("Emoji to be analyzed.")] string emoji)
+        [Command("source")]
+        [Alias("github")]
+        [Summary("Returns the link to my public repository.")]
+        public async Task SourceCommand()
         {
-            string e = emoji.Trim();
-            if (e.Length != 2)
-            {
-                await DiscordUtil.replyError(Context, "Not an Emote.");
-                return;
-            }
-            queue.Add(new CommandEvent(new EmojiCommand(Context, e)));
+            queue.Add(new CommandEvent(new SourceCommand(Context)));
+            await Task.CompletedTask;
+        }
+
+        [Command("profile")]
+        [Summary("Lists information about the specified user, or the one who used the command if none specified.")]
+        public async Task DefaultCommand([Summary("The (optinal) user.")] SocketUser user = null)
+        {
+            SocketUser target = user ?? Context.Message.Author;
+            queue.Add(new CommandEvent(new ProfileCommand(Context, target)));
+            await Task.CompletedTask;
         }
 
         [Command("timer")]
@@ -145,6 +141,27 @@ namespace intelligence_bot
             }
             queue.Add(new CommandEvent(new TimerCommand(Context, minutes, message)));
         }
+
+        [Command("ask")]
+        [Summary("Provides a random answer to the question.")]
+        public async Task AskCommand([Remainder][Summary("The question.")] string question)
+        {
+            queue.Add(new CommandEvent(new AskCommand(Context, question)));
+            await Task.CompletedTask;
+        }
+
+        [Command("emoji")]
+        [Summary("Lists information about the emoji.")]
+        public async Task EmojiCommand([Remainder][Summary("Emoji to be analyzed.")] string emoji)
+        {
+            string e = emoji.Trim();
+            if (e.Length != 2)
+            {
+                await DiscordUtil.replyError(Context, "Not an Emote.");
+                return;
+            }
+            queue.Add(new CommandEvent(new EmojiCommand(Context, e)));
+        }
     }
 
     [Group("games")]
@@ -158,7 +175,7 @@ namespace intelligence_bot
         }
 
         [Command]
-        [Summary("Lists of the specified user, or the system if none specified.")]
+        [Summary("Lists games of the specified user, or the system if none specified.")]
         public async Task DefaultCommand([Summary("The (optinal) user whose games are to be listed.")] SocketUser user = null)
         {
             if(user == null)

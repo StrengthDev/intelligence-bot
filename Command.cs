@@ -135,26 +135,7 @@ namespace intelligence_bot
         public override void execute(EventHandler data)
         {
             data.socket.SetActivityAsync(new Game(status, (ActivityType)type)).Wait();
-            Console.WriteLine($"Status set to: {getActivity(type)}{status}");
-        }
-
-        private string getActivity(int i)
-        {
-            switch(i)
-            {
-                case 0:
-                    return "Playing "; // ActivityType.Playing;
-                //case 1:
-                //    return "Streaming "; // ActivityType.Streaming;
-                case 2:
-                    return "Listening "; // ActivityType.Listening;
-                case 3:
-                    return "Watching "; // ActivityType.Watching;
-                case 4:
-                    return ""; // ActivityType.CustomStatus;
-                default:
-                    return "Playing "; // ActivityType.Playing;
-            }
+            Console.WriteLine($"Status set to: {DiscordUtil.activityString(type)} {status}");
         }
     }
     #endregion
@@ -235,10 +216,12 @@ namespace intelligence_bot
             string sx = DiscordUtil.highlight("x");
             string starget = DiscordUtil.highlight("target");
             string exp = DiscordUtil.highlight("expression");
+            string msg = DiscordUtil.highlight("message");
+            string smj = DiscordUtil.highlight("emoji");
 
 
             EmbedBuilder embed = new EmbedBuilder();
-            embed.Title = DiscordUtil.italic("Help");
+            embed.Title = EmojiUnicode.SCROLL + "   " + DiscordUtil.italic("Help");
             embed.Description = "";
             embed.Color = new Color(15, 150, 255);
 
@@ -253,33 +236,67 @@ namespace intelligence_bot
             embed.AddField(rng);
             
             EmbedFieldBuilder math = new EmbedFieldBuilder();
-            string srng = $"~rng [{sx}] [{sn}] {sarrow} Calculate the probability of an occurrence, with an absolute chance of {sx}, to happen at least once in {sn} attempts.\n";
-            string schance = $"~chance [{sx}] [{starget}] {sarrow} Calculate the number of attempts necessary for an occurrence, with an absolute chance of {sx}, to reach the target statistical chance {starget}.\n";
-            string calc = $"[{exp}] {sarrow} Calculate the value of the expression.\n";
+            string srng = $"~rng [{sx}] [{sn}] {sarrow} Calculate the probability of an event with chance {sx}, to happen at least once in {sn} attempts.\n";
+            string schance = $"~chance [{sx}] [{starget}] {sarrow} Calculate the number of attempts necessary for an event with chance {sx}, to reach a statistical chance {starget}.\n";
+            string scalc = $"[{exp}] {sarrow} Calculate the value of the expression.\n";
             math.Name = "Math";
-            math.Value = srng + schance + calc;
+            math.Value = srng + schance + scalc;
             math.IsInline = false;
             embed.AddField(math);
+
+            EmbedFieldBuilder misc = new EmbedFieldBuilder();
+            string ssource = $"~source {sarrow} Display the link to this bot's original source code.\n";
+            string stimer = $"~timer [{sn}] [{msg}] {sarrow} After {sn} minutes have passed, the bot will ping the user and display an optional {msg}.\n";
+            string semoji = $"~emoji [{smj}] {sarrow} Display the unicode of {smj}.\n";
+            misc.Name = "Miscellaneous";
+            misc.Value = ssource + stimer + semoji;
+            misc.IsInline = false;
+            embed.AddField(misc);
             
             DiscordUtil.reply(context, embed: embed.Build()).Wait();
         }
     }
 
-    class EmojiCommand : Command
+    class ProfileCommand : Command
     {
         private SocketCommandContext context;
-        private string emoji;
+        private SocketUser user;
 
-        public EmojiCommand(SocketCommandContext context, string emoji)
+        public ProfileCommand(SocketCommandContext context, SocketUser user)
         {
             this.context = context;
-            this.emoji = emoji;
+            this.user = user;
         }
 
         public override void execute(EventHandler data)
         {
-            string unicode = string.Format("\\U{0:X8}", char.ConvertToUtf32(emoji, 0));
-            DiscordUtil.reply(context, DiscordUtil.bold(unicode)).Wait();
+            EmbedBuilder embed = new EmbedBuilder();
+            embed.Title = user.ToString();
+
+            embed.Description = 
+                DiscordUtil.bold("UUID: ") + user.Id + '\n' + 
+                DiscordUtil.bold("Status: ") + DiscordUtil.statusString((int)user.Status) + '\n' + 
+                DiscordUtil.bold("Is a bot: ") + user.IsBot + '\n';
+            
+            string url = user.GetAvatarUrl();
+            if(url.Contains('?'))
+            {
+                url = url.Substring(0, url.IndexOf('?')) + "?size=512";
+            }
+            embed.ImageUrl = url;
+
+            embed.Color = new Color(110, 40, 255);
+
+            foreach(IActivity a in user.Activities)
+            {
+                EmbedFieldBuilder field = new EmbedFieldBuilder();
+                field.Name = a.Type == ActivityType.CustomStatus ? "Mood:" : DiscordUtil.activityString((int)a.Type) + ':';
+                field.Value = a.ToString();
+                field.IsInline = true;
+                embed.AddField(field);
+            }
+
+            DiscordUtil.reply(context, embed: embed.Build()).Wait();
         }
     }
 
@@ -298,13 +315,64 @@ namespace intelligence_bot
 
         public override void execute(EventHandler data)
         {
-            string tm = message != null && message.Trim() != "" ? DiscordUtil.bold("Beep Beep: ") + DiscordUtil.highlight(message.Replace("*", "").Replace("_", "").Replace("`", "").Replace("|", "")) : DiscordUtil.bold("Beep Beep.");
+            string tm = message != null && message.Trim() != "" ? DiscordUtil.bold("Beep Beep: ") + DiscordUtil.highlight(message.Replace("*", "").Replace("_", "").Replace("`", "").Replace("|", "").Replace("~", "").Trim()) : DiscordUtil.bold("Beep Beep.");
             Task.Run(() => {
                 TimeSpan time = new TimeSpan(0, minutes, 0);
                 Thread.Sleep(time);
                 data.queue.Add(new CommandEvent(new ReplyCommand(context, tm)));
             });
             context.Message.AddReactionAsync(new Emoji(EmojiUnicode.TIMER));
+        }
+    }
+
+    class AskCommand : Command
+    {
+        private SocketCommandContext context;
+        private string question;
+
+        public AskCommand(SocketCommandContext context, string question)
+        {
+            this.context = context;
+            this.question = question;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            if(data.answers != null)
+            {
+                uint roll = (uint)(data.rng.NextDouble() * data.answers[data.answers.Length - 1].Item1);
+                string answer = "I do not know.";
+                foreach(Tuple<uint, string> a in data.answers)
+                {
+                    if(roll < a.Item1)
+                    {
+                        answer = a.Item2;
+                        break;
+                    }
+                }
+                DiscordUtil.reply(context, answer).Wait();
+            } else
+            {
+                DiscordUtil.replyError(context, "Command unavailable.").Wait();
+            }
+        }
+    }
+
+    class EmojiCommand : Command
+    {
+        private SocketCommandContext context;
+        private string emoji;
+
+        public EmojiCommand(SocketCommandContext context, string emoji)
+        {
+            this.context = context;
+            this.emoji = emoji;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            string unicode = string.Format("\\U{0:X8}", char.ConvertToUtf32(emoji, 0));
+            DiscordUtil.reply(context, DiscordUtil.bold(unicode)).Wait();
         }
     }
     #endregion

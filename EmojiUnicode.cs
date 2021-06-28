@@ -13,5 +13,6 @@ namespace intelligence_bot
         
         public const string TIMER = "\U000023F2";
         public const string WARNING = "\U000026A0";
+        public const string SCROLL = "\U0001F4DC";
     }
 }

@@ -25,6 +25,7 @@ namespace intelligence_bot
         public GameDatabase db { get; private set; }
 
         public Dictionary<string, string> config;
+        public Tuple<uint, string>[] answers;
         public Random rng;
         private char prefix = '~';
 
@@ -36,9 +37,9 @@ namespace intelligence_bot
             channels = null;
             currentServer = -1;
             currentChannel = -1;
-            //TODO configuration
             cmdService = new CommandService();
             this.config = config;
+            answers = initAnswers();
             bool mentionCmds = false;
             if (config.ContainsKey(ConfigKeyword.MENTION_COMMANDS))
             {
@@ -118,6 +119,32 @@ namespace intelligence_bot
                 {
                     DiscordUtil.sendMessage(context, ":point_left: :point_left:").Wait();
                 }
+            }
+        }
+
+        private Tuple<uint, string>[] initAnswers()
+        {
+            try
+            {
+                string src;
+                config.TryGetValue(ConfigKeyword.ANSWERS, out src);
+                string[] unformated = src.Split(ConfigKeyword.ANSWER_SEPERATOR);
+                Tuple<uint, string>[] res = new Tuple<uint, string>[unformated.Length];
+                int i = 0;
+                uint total = 0;
+                foreach(string s in unformated)
+                {
+                    int index = s.IndexOf(ConfigKeyword.VALUE_SEPERATOR);
+                    string x = s.Substring(0, index);
+                    string b = s.Substring(index + 1);
+                    total += uint.Parse(x);
+                    res[i] = new Tuple<uint, string>(total, b);
+                    i++;
+                }
+                return res;
+            } catch (Exception e)
+            {
+                return null;
             }
         }
 
@@ -214,7 +241,7 @@ namespace intelligence_bot
 
             int depth = 0;
             int tier = int.MaxValue;
-            char prio = '\0';
+            char op = '\0';
             int pindex = 0;
             foreach(char c in trimmed)
             {
@@ -236,36 +263,36 @@ namespace intelligence_bot
                 {
                     if(c == PLUS)
                     {
-                        prio = PLUS;
+                        op = PLUS;
                         pindex = index;
                         break;
                     } else if(c == MINUS)
                     {
-                        prio = MINUS;
+                        op = MINUS;
                         pindex = index;
                         break;
                     }
                     switch(c)
                     {
                         case MULT:
-                            prio = MULT;
+                            op = MULT;
                             tier = 1;
                             pindex = index;
                             break;
                         case DIV:
-                            prio = DIV;
+                            op = DIV;
                             tier = 1;
                             pindex = index;
                             break;
                         case MOD:
-                            prio = MOD;
+                            op = MOD;
                             tier = 1;
                             pindex = index;
                             break;
                         case EXP:
                             if(1 < tier)
                             {
-                                prio = EXP;
+                                op = EXP;
                                 tier = 2;
                                 pindex = index;
                             }
@@ -279,7 +306,7 @@ namespace intelligence_bot
             }
             string left = trimmed.Substring(0, pindex);
             string right = trimmed.Substring(pindex + 1, trimmed.Length - pindex - 1);
-            switch (prio)
+            switch (op)
             {
                 case PLUS:
                     return parseExpression(left) + parseExpression(right);
