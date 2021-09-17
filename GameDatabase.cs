@@ -35,12 +35,9 @@ namespace intelligence_bot
                 }
                 set
                 {
-                    if (value != null)
+                    foreach (ulong item in value)
                     {
-                        foreach (ulong item in value)
-                        {
-                            players.Add(item);
-                        }
+                        players.Add(item);
                     }
                 }
             }
@@ -68,12 +65,9 @@ namespace intelligence_bot
                 }
                 set
                 {
-                    if (value != null)
+                    foreach (string item in value)
                     {
-                        foreach (string item in value)
-                        {
-                            games.Add(item);
-                        }
+                        games.Add(item);
                     }
                 }
             }
@@ -133,12 +127,9 @@ namespace intelligence_bot
                 }
                 set
                 {
-                    if (value != null)
+                    foreach (KeyValue<ulong, Player> item in value)
                     {
-                        foreach (KeyValue<ulong, Player> item in value)
-                        {
-                            players.Add(item.key, item.val);
-                        }
+                        players.Add(item.key, item.val);
                     }
                 }
             }
