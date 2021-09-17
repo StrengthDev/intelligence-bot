@@ -14,7 +14,6 @@ namespace intelligence_bot
             int index = com.IndexOf(' ');
             string fn;
             string arg = string.Empty;
-            string[] args;
             if(index != -1)
             {
                 fn = com.Substring(0, index);
@@ -48,11 +47,6 @@ namespace intelligence_bot
                     return new SetStatusCommand(s, t);
             }
             Console.WriteLine("Unknown command.");
-            return null;
-        }
-
-        static private string[] splitArgs(string arg)
-        {
             return null;
         }
     }

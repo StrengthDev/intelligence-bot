@@ -127,5 +127,15 @@ namespace intelligence_bot
         {
             await context.Message.ReplyAsync(text: text, embed: embed, allowedMentions: ping ? null : new AllowedMentions(AllowedMentionTypes.None));
         }
+
+        public static async Task sendFile(SocketCommandContext context, string path, string caption = null, bool spoiler = false)
+        {
+            await context.Channel.SendFileAsync(path, caption, isSpoiler: spoiler);
+        }
+
+        public static async Task replyFile(SocketCommandContext context, string path, string caption = null, bool spoiler = false, bool ping = false)
+        {
+            await context.Channel.SendFileAsync(path, caption, isSpoiler: spoiler, allowedMentions: ping ? null : new AllowedMentions(AllowedMentionTypes.None), messageReference: new MessageReference(context.Message.Id));
+        }
     }
 }

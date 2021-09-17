@@ -375,6 +375,29 @@ namespace intelligence_bot
             DiscordUtil.reply(context, DiscordUtil.bold(unicode)).Wait();
         }
     }
+
+    class GenerateCommand : Command
+    {
+        private SocketCommandContext context;
+        private string generator;
+
+        public GenerateCommand(SocketCommandContext context, string generator)
+        {
+            this.context = context;
+            this.generator = generator;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            if(generator == "r")
+            {
+                DiscordUtil.replyFile(context, "img.png").Wait();
+            } else
+            {
+                DiscordUtil.sendFile(context, "img.png").Wait();
+            }
+        }
+    }
     #endregion
 
     #region Math
@@ -511,7 +534,15 @@ namespace intelligence_bot
 
         public override void execute(EventHandler data)
         {
-
+            string[] games = data.db.listGames();
+            string message = "Available games:\n";
+            foreach (string game in games)
+            {
+                message += game;
+                message += "\t";
+            }
+            message = DiscordUtil.code(message);
+            DiscordUtil.reply(context, message).Wait();
         }
     }
 
@@ -528,7 +559,20 @@ namespace intelligence_bot
 
         public override void execute(EventHandler data)
         {
-            
+            if(!data.db.playerExists(user.Id))
+            {
+                DiscordUtil.reply(context, "User has no games.").Wait();
+                return;
+            }
+            string[] games = data.db.listGames(user.Id);
+            string message = user.Username + "'s games:\n";
+            foreach(string game in games)
+            {
+                message += game;
+                message += "\t";
+            }
+            message = DiscordUtil.code(message);
+            DiscordUtil.reply(context, message).Wait();
         }
     }
 
@@ -545,7 +589,14 @@ namespace intelligence_bot
 
         public override void execute(EventHandler data)
         {
-
+            if(data.db.gameExists(game))
+            {
+                DiscordUtil.replyError(context, "Game is already added.").Wait();
+            } else
+            {
+                data.db.addGame(game);
+                DiscordUtil.reply(context, "Game added.").Wait();
+            }
         }
     }
 
@@ -562,7 +613,15 @@ namespace intelligence_bot
 
         public override void execute(EventHandler data)
         {
-
+            if (data.db.gameExists(game))
+            {
+                data.db.removeGame(game);
+                DiscordUtil.reply(context, "Game removed.").Wait();
+            }
+            else
+            {
+                DiscordUtil.replyError(context, "Game does not exist.").Wait();
+            }
         }
     }
 

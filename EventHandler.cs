@@ -29,6 +29,8 @@ namespace intelligence_bot
         public Random rng;
         private char prefix = '~';
 
+        //Generator gen; TODO: uncomment when implemented
+
         public EventHandler(BlockingCollection<Event> queue, DiscordSocketClient socket, Dictionary<string, string> config)
         {
             this.queue = queue;
@@ -40,12 +42,12 @@ namespace intelligence_bot
             cmdService = new CommandService();
             this.config = config;
             answers = initAnswers();
+            string temps;
             bool mentionCmds = false;
             if (config.ContainsKey(ConfigKeyword.MENTION_COMMANDS))
             {
-                string bt;
-                config.TryGetValue(ConfigKeyword.MENTION_COMMANDS, out bt);
-                mentionCmds = bool.Parse(bt);
+                config.TryGetValue(ConfigKeyword.MENTION_COMMANDS, out temps);
+                mentionCmds = bool.Parse(temps);
             }
             if (mentionCmds)
             {
@@ -54,10 +56,24 @@ namespace intelligence_bot
             {
                 socket.MessageReceived += remoteCommand;
             }
-            //db = new GameDatabase(ConfigKeyword.GDB_LOC); //TODO: uncomment after fully implementing game database
-            //db.load();
+            if (config.ContainsKey(ConfigKeyword.GDB_LOC))
+            {
+                config.TryGetValue(ConfigKeyword.GDB_LOC, out temps);
+            } else
+            {
+                temps = "DEFAULT_GAME_DATABASE.xml";
+            }
+            db = new GameDatabase(temps);
+            db.load();
             rng = new Random();
             cmdService.AddModulesAsync(Assembly.GetEntryAssembly(), null).Wait();
+
+            //gen = new Generator(@"C:\dev\image-generator-trainer\model"); TODO: uncomment when implemented
+        }
+
+        public void shutdown()
+        {
+            db.save();
         }
 
         public void handleEvent(Event e)
@@ -113,7 +129,7 @@ namespace intelligence_bot
             {
                 double result = parseExpression(context.Message.Content.ToLower());
                 DiscordUtil.reply(context, DiscordUtil.bold(string.Format("{0,0:0.###}", result))).Wait();
-            } catch (Exception e) { } finally
+            } catch (Exception) { } finally
             {
                 if(context.Message.Content.Trim() == (EmojiUnicode.POINT_RIGHT + ' ' + EmojiUnicode.POINT_RIGHT))
                 {
@@ -142,7 +158,7 @@ namespace intelligence_bot
                     i++;
                 }
                 return res;
-            } catch (Exception e)
+            } catch (Exception)
             {
                 return null;
             }
@@ -173,6 +189,7 @@ namespace intelligence_bot
 
         private const string ROLL = "roll";
         private const string RAND = "rand";
+
         private double parseExpression(string expression)
         {
             string trimmed = expression.Trim();

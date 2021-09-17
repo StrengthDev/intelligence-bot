@@ -46,7 +46,7 @@ namespace intelligence_bot
             string token;
             if(!config.TryGetValue(ConfigKeyword.TOKEN, out token))
             {
-                //TODO exception
+                throw new ArgumentNullException("No token provided.");
             }
             await socket.LoginAsync(Discord.TokenType.Bot, token);
             await socket.StartAsync();
@@ -74,6 +74,7 @@ namespace intelligence_bot
         {
             await socket.LogoutAsync();
             await socket.StopAsync();
+            handler.shutdown();
         }
 
         static private Task Log(LogMessage msg)

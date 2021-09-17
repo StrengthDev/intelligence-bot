@@ -118,6 +118,7 @@ namespace intelligence_bot
 
         [Command("profile")]
         [Summary("Lists information about the specified user, or the one who used the command if none specified.")]
+        [Alias("user", "whois", "who")]
         public async Task DefaultCommand([Summary("The (optinal) user.")] SocketUser user = null)
         {
             SocketUser target = user ?? Context.Message.Author;
@@ -161,6 +162,14 @@ namespace intelligence_bot
                 return;
             }
             queue.Add(new CommandEvent(new EmojiCommand(Context, e)));
+        }
+
+        [Command("test")]
+        [Summary(".")]
+        public async Task GenerateCommand([Remainder][Summary(".")] string generator)
+        {
+            queue.Add(new CommandEvent(new GenerateCommand(Context, generator)));
+            await Task.CompletedTask;
         }
     }
 
