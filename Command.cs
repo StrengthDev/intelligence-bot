@@ -638,7 +638,27 @@ namespace intelligence_bot
 
         public override void execute(EventHandler data)
         {
+            if(!data.db.gameExists(game))
+            {
+                DiscordUtil.replyError(context, "Game does not exist.").Wait();
+                return;
+            }
             SocketUser user = context.User;
+            if(!data.db.playerExists(user.Id))
+            {
+                data.db.addPlayer(user.Id, user.Username);
+                data.db.buyGame(user.Id, game);
+                DiscordUtil.reply(context, "Game added to your library.").Wait();
+                return;
+            }
+            if(data.db.hasGame(user.Id, game))
+            {
+                DiscordUtil.replyError(context, "You already own that game.").Wait();
+            } else
+            {
+                data.db.buyGame(user.Id, game);
+                DiscordUtil.reply(context, "Game added to your library.").Wait();
+            }
         }
     }
 
@@ -656,6 +676,19 @@ namespace intelligence_bot
         public override void execute(EventHandler data)
         {
             SocketUser user = context.User;
+            if(!data.db.playerExists(user.Id))
+            {
+                DiscordUtil.replyError(context, "You do not own any games.").Wait();
+                return;
+            }
+            if(data.db.hasGame(user.Id, game))
+            {
+                data.db.sellGame(user.Id, game);
+                DiscordUtil.reply(context, "Game removed from your library.").Wait();
+            } else
+            {
+                DiscordUtil.replyError(context, "You do not own that game.").Wait();
+            }
         }
     }
     #endregion

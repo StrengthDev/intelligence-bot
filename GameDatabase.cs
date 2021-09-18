@@ -156,7 +156,12 @@ namespace intelligence_bot
 
         public void removeGame(string game)
         {
-            //TODO
+            ulong[] owners = db.games[game].players.ToArray();
+            foreach (ulong id in owners)
+            {
+                db.players[id].games.Remove(game);
+            }
+            db.games.Remove(game);
         }
 
         public bool gameExists(string game)
@@ -171,7 +176,12 @@ namespace intelligence_bot
 
         public void removePlayer(ulong id)
         {
-            //TODO
+            string[] owned = db.players[id].games.ToArray();
+            foreach (string game in owned)
+            {
+                db.games[game].players.Remove(id);
+            }
+            db.players.Remove(id);
         }
 
         public bool playerExists(ulong id)
@@ -181,30 +191,24 @@ namespace intelligence_bot
 
         public bool playerHasGames(ulong id)
         {
-            db.players.TryGetValue(id, out Player user);
-            return !(user.games.Count == 0);
+            return !(db.players[id].games.Count == 0);
         }
 
         public void buyGame(ulong id, string game)
         {
-            db.players.TryGetValue(id, out Player user);
-            user.games.Add(game);
-            db.games.TryGetValue(game, out Game go);
-            go.players.Add(id);
+            db.players[id].games.Add(game);
+            db.games[game].players.Add(id);
         }
 
         public void sellGame(ulong id, string game)
         {
-            db.players.TryGetValue(id, out Player user);
-            user.games.Remove(game);
-            db.games.TryGetValue(game, out Game go);
-            go.players.Remove(id);
+            db.players[id].games.Remove(game);
+            db.games[game].players.Remove(id);
         }
 
         public bool hasGame(ulong id, string game)
         {
-            db.players.TryGetValue(id, out Player user);
-            return user.games.Contains(game);
+            return db.players[id].games.Contains(game);
         }
 
         public string[] listGames()
@@ -214,8 +218,7 @@ namespace intelligence_bot
 
         public string[] listGames(ulong id)
         {
-            db.players.TryGetValue(id, out Player user);
-            return user.games.ToArray();
+            return db.players[id].games.ToArray();
         }
         
         public void save()
