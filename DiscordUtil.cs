@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace intelligence_bot
 {
@@ -136,6 +137,16 @@ namespace intelligence_bot
         public static async Task replyFile(SocketCommandContext context, string path, string caption = null, bool spoiler = false, bool ping = false)
         {
             await context.Channel.SendFileAsync(path, caption, isSpoiler: spoiler, allowedMentions: ping ? null : new AllowedMentions(AllowedMentionTypes.None), messageReference: new MessageReference(context.Message.Id));
+        }
+
+        public static async Task sendFile(SocketCommandContext context, Stream stream, string name, string caption = null, bool spoiler = false)
+        {
+            await context.Channel.SendFileAsync(stream, name, caption, isSpoiler: spoiler);
+        }
+
+        public static async Task replyFile(SocketCommandContext context, Stream stream, string name, string caption = null, bool spoiler = false, bool ping = false)
+        {
+            await context.Channel.SendFileAsync(stream, name, caption, isSpoiler: spoiler, allowedMentions: ping ? null : new AllowedMentions(AllowedMentionTypes.None), messageReference: new MessageReference(context.Message.Id));
         }
     }
 }
