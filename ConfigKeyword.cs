@@ -16,5 +16,7 @@
         public static string ANSWERS = "answers";
         public static char ANSWER_SEPERATOR = '\\';
         public static char VALUE_SEPERATOR = '-';
+        public static string PL_FORMAT = "powerLevelFormat";
+        public static char FORMAT_SEPERATOR = '"';
     }
 }

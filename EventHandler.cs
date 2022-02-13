@@ -26,6 +26,10 @@ namespace intelligence_bot
 
         public Dictionary<string, string> config;
         public Tuple<uint, string>[] answers;
+        public string plf0 = "";
+        public string plf1 = "";
+        public string plf2 = "";
+        public uint plf_length = 1;
         public Random rng;
         private char prefix = '~';
 
@@ -42,6 +46,7 @@ namespace intelligence_bot
             cmdService = new CommandService();
             this.config = config;
             answers = initAnswers();
+            initPowerLevelFormat();
             string temps;
             bool mentionCmds = false;
             if (config.ContainsKey(ConfigKeyword.MENTION_COMMANDS))
@@ -162,6 +167,22 @@ namespace intelligence_bot
             {
                 return null;
             }
+        }
+
+        private void initPowerLevelFormat()
+        {
+            try
+            {
+                string src;
+                config.TryGetValue(ConfigKeyword.PL_FORMAT, out src);
+                string[] pieces = src.Split(ConfigKeyword.FORMAT_SEPERATOR);
+                plf0 = pieces[0];
+                plf1 = pieces[1];
+                plf2 = pieces[2];
+                plf_length = uint.Parse(pieces[3]);
+            }
+            catch (Exception)
+            { }
         }
 
         private const char PLUS = '+';

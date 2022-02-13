@@ -220,6 +220,25 @@ namespace intelligence_bot
         {
             return db.players[id].games.ToArray();
         }
+
+        public string[] intersect(ulong[] ids)
+        {
+            SortedSet<string> games = new SortedSet<string>(db.players[ids[0]].games);
+            bool first = true;
+            foreach(ulong id in ids)
+            {
+                if(first)
+                {
+                    first = false;
+                    continue;
+                } 
+                else
+                {
+                    games.IntersectWith(db.players[id].games);
+                }
+            }
+            return games.ToArray();
+        }
         
         public void save()
         {

@@ -338,20 +338,50 @@ namespace intelligence_bot
 
         public override void execute(EventHandler data)
         {
-            if(data.answers != null)
+            if (data.answers != null)
             {
-                uint roll = (uint)(data.rng.NextDouble() * data.answers[data.answers.Length - 1].Item1);
+                uint roll = BitConverter.ToUInt32(BitConverter.GetBytes(question.GetHashCode()), 0) % data.answers[data.answers.Length - 1].Item1;
                 string answer = "I do not know.";
-                foreach(Tuple<uint, string> a in data.answers)
+                foreach (Tuple<uint, string> a in data.answers)
                 {
-                    if(roll < a.Item1)
+                    if (roll < a.Item1)
                     {
                         answer = a.Item2;
                         break;
                     }
                 }
                 DiscordUtil.reply(context, answer).Wait();
-            } else
+            }
+            else
+            {
+                DiscordUtil.replyError(context, "Command unavailable.").Wait();
+            }
+        }
+    }
+
+    class PowerLevelCommand : Command
+    {
+        private SocketCommandContext context;
+
+        public PowerLevelCommand(SocketCommandContext context)
+        {
+            this.context = context;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            if (data.answers != null)
+            {
+                uint roll = (uint)((context.User.Id % data.plf_length) + 1);
+                string answer = data.plf0;
+                for (uint i = 0; i < roll; i++)
+                {
+                    answer += data.plf1;
+                }
+                answer += data.plf2;
+                DiscordUtil.reply(context, answer).Wait();
+            }
+            else
             {
                 DiscordUtil.replyError(context, "Command unavailable.").Wait();
             }
@@ -576,6 +606,41 @@ namespace intelligence_bot
         }
     }
 
+    class GameIntersectionCommand : Command
+    {
+        private SocketCommandContext context;
+        SocketUser[] users;
+
+        public GameIntersectionCommand(SocketCommandContext context, SocketUser[] users)
+        {
+            this.context = context;
+            this.users = users;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            List<ulong> ids = new List<ulong>();
+            foreach(SocketUser user in users)
+            {
+                if (!data.db.playerExists(user.Id))
+                {
+                    DiscordUtil.reply(context, "User has no games.").Wait();
+                    return;
+                }
+                ids.Add(user.Id);
+            }
+            string[] games = data.db.intersect(ids.ToArray());
+            string message = "Intersection:\n";
+            foreach (string game in games)
+            {
+                message += game;
+                message += "\t";
+            }
+            message = DiscordUtil.code(message);
+            DiscordUtil.reply(context, message).Wait();
+        }
+    }
+
     class GameAddCommand : Command
     {
         private SocketCommandContext context;
@@ -658,6 +723,45 @@ namespace intelligence_bot
             {
                 data.db.buyGame(user.Id, game);
                 DiscordUtil.reply(context, "Game added to your library.").Wait();
+            }
+        }
+    }
+
+    class GameGiftCommand : Command
+    {
+        private SocketCommandContext context;
+        private SocketUser user;
+        private string game;
+
+        public GameGiftCommand(SocketCommandContext context, SocketUser user, string game)
+        {
+            this.context = context;
+            this.user = user;
+            this.game = game;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            if (!data.db.gameExists(game))
+            {
+                DiscordUtil.replyError(context, "Game does not exist.").Wait();
+                return;
+            }
+            if (!data.db.playerExists(user.Id))
+            {
+                data.db.addPlayer(user.Id, user.Username);
+                data.db.buyGame(user.Id, game);
+                DiscordUtil.reply(context, "Game added to " + user.Username + "'s library.").Wait();
+                return;
+            }
+            if (data.db.hasGame(user.Id, game))
+            {
+                DiscordUtil.replyError(context, user.Username + " already owns that game.").Wait();
+            }
+            else
+            {
+                data.db.buyGame(user.Id, game);
+                DiscordUtil.reply(context, "Game added to " + user.Username + "'s library.").Wait();
             }
         }
     }

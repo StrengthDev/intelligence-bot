@@ -144,10 +144,18 @@ namespace intelligence_bot
         }
 
         [Command("ask")]
-        [Summary("Provides a random answer to the question.")]
+        [Summary("Provides an answer to the question.")]
         public async Task AskCommand([Remainder][Summary("The question.")] string question)
         {
             queue.Add(new CommandEvent(new AskCommand(Context, question)));
+            await Task.CompletedTask;
+        }
+
+        [Command("powerlevel")]
+        [Summary("Displays the power level of the calling user.")]
+        public async Task PowerLevelCommand()
+        {
+            queue.Add(new CommandEvent(new PowerLevelCommand(Context)));
             await Task.CompletedTask;
         }
 
@@ -197,6 +205,28 @@ namespace intelligence_bot
             await Task.CompletedTask;
         }
 
+        [Command("intersect")]
+        [Summary("Lists games of the specified user, or the system if none specified.")]
+        public async Task DefaultCommand([Remainder][Summary(".")] string users)
+        {
+            List<SocketUser> sus = new List<SocketUser>();
+            foreach(string user in users.Split(' '))
+            {
+                TypeReaderResult res = new UserTypeReader<SocketUser>().ReadAsync(Context, user, null).Result;
+                if(res.IsSuccess)
+                {
+                    SocketUser su = (SocketUser)res.BestMatch;
+                    sus.Add(su);
+                } else
+                {
+                    await DiscordUtil.replyError(Context, "Could not parse: " + user);
+                    return;
+                }
+            }
+            queue.Add(new CommandEvent(new GameIntersectionCommand(Context, sus.ToArray())));
+            await Task.CompletedTask;
+        }
+
         [Command("add")]
         [Summary(".")]
         public async Task AddCommand([Remainder][Summary(".")] string game)
@@ -218,6 +248,14 @@ namespace intelligence_bot
         public async Task BuyCommand([Remainder][Summary(".")] string game)
         {
             queue.Add(new CommandEvent(new GameBuyCommand(Context, game)));
+            await Task.CompletedTask;
+        }
+
+        [Command("gift")]
+        [Summary(".")]
+        public async Task GiftCommand([Summary(".")] SocketUser user, [Remainder][Summary(".")] string game)
+        {
+            queue.Add(new CommandEvent(new GameGiftCommand(Context, user, game)));
             await Task.CompletedTask;
         }
 
