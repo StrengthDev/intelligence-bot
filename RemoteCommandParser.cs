@@ -181,6 +181,30 @@ namespace intelligence_bot
         }
     }
 
+    [Group("text")]
+    public class RemoteTextCommandParser : ModuleBase<SocketCommandContext>
+    {
+        private static BlockingCollection<Event> queue;
+
+        internal static void SetQueue(BlockingCollection<Event> queue)
+        {
+            RemoteTextCommandParser.queue = queue;
+        }
+
+        [Group("regex")]
+        public class RemoteRegexCommandParser : ModuleBase<SocketCommandContext>
+        {
+            [Command("replace")]
+            [Summary("Replaces every instance of text within the previous message, matching the regex, with the replacement.")]
+            public async Task RegexReplaceCommand([Remainder][Summary("Arguments for the command.")] string args)
+            {
+                queue.Add(new CommandEvent(new RegexReplaceCommand(Context, args)));
+                await Task.CompletedTask;
+            }
+        }
+
+    }
+
     [Group("games")]
     public class RemoteGameCommandParser : ModuleBase<SocketCommandContext>
     {

@@ -132,7 +132,7 @@ namespace intelligence_bot
         {
             try
             {
-                double result = parseExpression(context.Message.Content.ToLower());
+                double result = parseExpression(context.Message.Content.ToLower().Replace(" ", ""));
                 DiscordUtil.reply(context, DiscordUtil.bold(string.Format("{0,0:0.###}", result))).Wait();
             } catch (Exception) { } finally
             {
@@ -213,7 +213,7 @@ namespace intelligence_bot
 
         private double parseExpression(string expression)
         {
-            string trimmed = expression.Trim();
+            string trimmed = expression;
             int scopel;
             while((scopel = scopeLength(trimmed)) == trimmed.Length - 2)
             {

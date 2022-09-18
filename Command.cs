@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -550,6 +551,59 @@ namespace intelligence_bot
             DiscordUtil.reply(context, message).Wait();
         }
     }
+    #endregion
+
+    #region Text
+    class RegexReplaceCommand : Command
+    {
+        private SocketCommandContext context;
+        private string args;
+
+        public RegexReplaceCommand(SocketCommandContext context, string args)
+        {
+            this.context = context;
+            this.args = args;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            string trimmed = args.TrimStart();
+            Match regex = Regex.Match(trimmed, "/(.+)/([igmuys]*) \"(.*)\"");
+            if(regex.Success)
+            {
+                string flag_s = regex.Groups[2].Value;
+                RegexOptions options = RegexOptions.None;
+                foreach(char c in flag_s)
+                {
+                    switch(c)
+                    {
+                        case 'i':
+                            options |= RegexOptions.IgnoreCase;
+                            break;
+                        case 'm':
+                            options |= RegexOptions.Multiline;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                string replacement = regex.Groups[3].Value;//args.Substring(regex.Length);
+                var messages = context.Channel.GetMessagesAsync(2).FlattenAsync().Result;
+                //DiscordUtil.reply(context, $"Message: {messages.Last().Content}\nRegex: {regex.Groups[1].Value}\nFlag: {flag}\nReplacement: {replacement}\n").Wait();
+                try
+                {
+                    DiscordUtil.reply(context, Regex.Replace(messages.Last().Content, regex.Groups[1].Value, replacement, options)).Wait();
+                } catch (Exception)
+                {
+                    DiscordUtil.replyError(context, "Regular expression or replacement string invalid.").Wait();
+                }
+            } else
+            {
+                DiscordUtil.replyError(context, "Could not parse regex.").Wait();
+            }
+        }
+    }
+
     #endregion
 
     #region Games
