@@ -10,7 +10,9 @@ namespace intelligence_bot
     {
         public const string THUMBS_UP = "\U0001F44D";
         public const string POINT_RIGHT = "\U0001F449";
-        
+
+        public const string DATE = "\U0001F4C5";
+        public const string CALENDAR = "\U0001F4C6";
         public const string TIMER = "\U000023F2";
         public const string WARNING = "\U000026A0";
         public const string SCROLL = "\U0001F4DC";

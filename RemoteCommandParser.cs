@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Discord.WebSocket;
+using System.Globalization;
 
 namespace intelligence_bot
 {
@@ -119,7 +120,7 @@ namespace intelligence_bot
         [Command("profile")]
         [Summary("Lists information about the specified user, or the one who used the command if none specified.")]
         [Alias("user", "whois", "who")]
-        public async Task DefaultCommand([Summary("The (optinal) user.")] SocketUser user = null)
+        public async Task ProfileCommand([Summary("The (optinal) user.")] SocketUser user = null)
         {
             SocketUser target = user ?? Context.Message.Author;
             queue.Add(new CommandEvent(new ProfileCommand(Context, target)));
@@ -128,7 +129,7 @@ namespace intelligence_bot
 
         [Command("timer")]
         [Summary("Sets a timer, after which the user is pinged.")]
-        public async Task EmojiCommand([Summary("Minutes to wait.")] int minutes, [Remainder][Summary("Message of the timer.")] string message = null)
+        public async Task TimerCommand([Summary("Minutes to wait.")] int minutes, [Remainder][Summary("Message of the timer.")] string message = null)
         {
             if (minutes < 1)
             {
@@ -141,6 +142,43 @@ namespace intelligence_bot
                 return;
             }
             queue.Add(new CommandEvent(new TimerCommand(Context, minutes, message)));
+        }
+
+        [Command("remind")]
+        [Summary("Pings the user at the point in time time provided.")]
+        public async Task RemindCommand([Remainder][Summary("Arguments.")] string message)
+        {
+            int space0 = message.IndexOf(' ');
+            int space1 = message.IndexOf(' ', space0 + 1);
+            string dateString;
+            string userMessage;
+            if(space1 == -1)
+            {
+                dateString = message;
+                userMessage = "";
+            } else
+            {
+                dateString = message.Substring(0, space1);
+                userMessage = message.Substring(space1 + 1);
+            }
+            DateTime date;
+            try
+            {
+                DateTime.TryParseExact(dateString, "g", CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal, out date);
+            } catch (ArgumentException)
+            {
+                await DiscordUtil.replyError(Context, "Invalid date./nDate format: dd/mm/yyyy hh:mm");
+                return;
+            }
+            queue.Add(new CommandEvent(new RemindCommand(Context, date, userMessage)));
+        }
+
+        [Command("now")]
+        [Summary("Displays current time.")]
+        public async Task NowCommand()
+        {
+            queue.Add(new CommandEvent(new ReplyCommand(Context, DateTime.Now.ToString("R"))));
+            await Task.CompletedTask;
         }
 
         [Command("ask")]
@@ -166,7 +204,7 @@ namespace intelligence_bot
             string e = emoji.Trim();
             if (e.Length != 2)
             {
-                await DiscordUtil.replyError(Context, "Not an Emote.");
+                await DiscordUtil.replyError(Context, $"Not an Emote. ({e.Length})");
                 return;
             }
             queue.Add(new CommandEvent(new EmojiCommand(Context, e)));
@@ -231,7 +269,7 @@ namespace intelligence_bot
 
         [Command("intersect")]
         [Summary("Lists games of the specified user, or the system if none specified.")]
-        public async Task DefaultCommand([Remainder][Summary(".")] string users)
+        public async Task IntersectCommand([Remainder][Summary(".")] string users)
         {
             List<SocketUser> sus = new List<SocketUser>();
             foreach(string user in users.Split(' '))

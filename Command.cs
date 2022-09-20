@@ -166,17 +166,18 @@ namespace intelligence_bot
         private SocketCommandContext context;
         private string message;
         private Embed embed;
+        private bool ping;
 
-        public ReplyCommand(SocketCommandContext context, string message = null, Embed embed = null)
+        public ReplyCommand(SocketCommandContext context, string message = null, Embed embed = null, bool ping = false)
         {
             this.context = context;
             this.message = message;
-            this.embed = embed;
+            this.ping = ping;
         }
 
         public override void execute(EventHandler data)
         {
-            DiscordUtil.reply(context, message, embed, true).Wait();
+            DiscordUtil.reply(context, message, embed, ping).Wait();
         }
     }
     #endregion
@@ -320,9 +321,41 @@ namespace intelligence_bot
             Task.Run(() => {
                 TimeSpan time = new TimeSpan(0, minutes, 0);
                 Thread.Sleep(time);
-                data.queue.Add(new CommandEvent(new ReplyCommand(context, tm)));
+                data.queue.Add(new CommandEvent(new ReplyCommand(context, tm, ping: true)));
             });
             context.Message.AddReactionAsync(new Emoji(EmojiUnicode.TIMER));
+        }
+    }
+
+    class RemindCommand : Command
+    {
+        private SocketCommandContext context;
+        private DateTime time;
+        private string message;
+
+        public RemindCommand(SocketCommandContext context, DateTime time, string message)
+        {
+            this.context = context;
+            this.time = time;
+            this.message = message;
+        }
+
+        public override void execute(EventHandler data)
+        {
+            string tm = message != null && message.Trim() != "" ? DiscordUtil.bold("Reminder: ") + DiscordUtil.highlight(message.Replace("*", "").Replace("_", "").Replace("`", "").Replace("|", "").Replace("~", "").Trim()) : DiscordUtil.bold("I am reminding you of something.");
+            DateTime now = DateTime.Now;
+            TimeSpan dif = time - now;
+            if(dif.Ticks > 0)
+            {
+                Task.Run(() => {
+                    Thread.Sleep(dif);
+                    data.queue.Add(new CommandEvent(new ReplyCommand(context, tm, ping: true)));
+                });
+                context.Message.AddReactionAsync(new Emoji(EmojiUnicode.DATE));
+            } else
+            {
+                DiscordUtil.replyError(context, "I can't remind you in the past.").Wait();
+            }
         }
     }
 
@@ -342,7 +375,7 @@ namespace intelligence_bot
             if (data.answers != null)
             {
                 uint roll = BitConverter.ToUInt32(BitConverter.GetBytes(question.GetHashCode()), 0) % data.answers[data.answers.Length - 1].Item1;
-                string answer = "I do not know.";
+                string answer = "Does not compute.";
                 foreach (Tuple<uint, string> a in data.answers)
                 {
                     if (roll < a.Item1)
