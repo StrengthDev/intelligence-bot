@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+using System.Threading;
 
 namespace intelligence_bot
 {
@@ -143,15 +144,20 @@ namespace intelligence_bot
 
         public string filename { get; private set; }
         private Database db;
+        private const int saveTime = 180 * 1000; //3 minutes
+        private Timer saveTimer;
 
         public GameDatabase(string filename)
         {
             this.filename = filename;
+            saveTimer = new Timer(timerAction, null, Timeout.Infinite, 0);
         }
 
         public void addGame(string game)
         {
             db.games.Add(game, new Game());
+
+            setDirty();
         }
 
         public void removeGame(string game)
@@ -162,6 +168,8 @@ namespace intelligence_bot
                 db.players[id].games.Remove(game);
             }
             db.games.Remove(game);
+
+            setDirty();
         }
 
         public bool gameExists(string game)
@@ -172,6 +180,8 @@ namespace intelligence_bot
         public void addPlayer(ulong id, string name)
         {
             db.players.Add(id, new Player(name));
+
+            setDirty();
         }
 
         public void removePlayer(ulong id)
@@ -182,6 +192,8 @@ namespace intelligence_bot
                 db.games[game].players.Remove(id);
             }
             db.players.Remove(id);
+
+            setDirty();
         }
 
         public bool playerExists(ulong id)
@@ -198,12 +210,16 @@ namespace intelligence_bot
         {
             db.players[id].games.Add(game);
             db.games[game].players.Add(id);
+
+            setDirty();
         }
 
         public void sellGame(ulong id, string game)
         {
             db.players[id].games.Remove(game);
             db.games[game].players.Remove(id);
+
+            setDirty();
         }
 
         public bool hasGame(ulong id, string game)
@@ -239,6 +255,17 @@ namespace intelligence_bot
             }
             return games.ToArray();
         }
+
+        private void timerAction(object state)
+        {
+            Console.WriteLine("Saving game databse..");
+            save();
+        }
+
+        private void setDirty()
+        {
+            saveTimer.Change(saveTime, 0);
+        }
         
         public void save()
         {
@@ -248,6 +275,7 @@ namespace intelligence_bot
                 return;
             }
             IO.saveXML(filename, db);
+            Console.WriteLine("Game database succefuly saved to: " + filename);
         }
 
         public void load()
