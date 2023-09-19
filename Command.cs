@@ -172,6 +172,7 @@ namespace intelligence_bot
         {
             this.context = context;
             this.message = message;
+            this.embed = embed;
             this.ping = ping;
         }
 
@@ -317,7 +318,7 @@ namespace intelligence_bot
 
         public override void execute(EventHandler data)
         {
-            string tm = message != null && message.Trim() != "" ? DiscordUtil.bold("Beep Beep: ") + DiscordUtil.highlight(message.Replace("*", "").Replace("_", "").Replace("`", "").Replace("|", "").Replace("~", "").Trim()) : DiscordUtil.bold("Beep Beep.");
+            string tm = message != null && message.Trim() != "" ? DiscordUtil.bold("Beep Beep: ") + DiscordUtil.highlight(DiscordUtil.sanitise(message)) : DiscordUtil.bold("Beep Beep.");
             Task.Run(() => {
                 TimeSpan time = new TimeSpan(0, minutes, 0);
                 Thread.Sleep(time);
@@ -342,7 +343,7 @@ namespace intelligence_bot
 
         public override void execute(EventHandler data)
         {
-            string tm = message != null && message.Trim() != "" ? DiscordUtil.bold("Reminder: ") + DiscordUtil.highlight(message.Replace("*", "").Replace("_", "").Replace("`", "").Replace("|", "").Replace("~", "").Trim()) : DiscordUtil.bold("I am reminding you of something.");
+            string tm = message != null && message.Trim() != "" ? DiscordUtil.bold("Reminder: ") + DiscordUtil.highlight(DiscordUtil.sanitise(message)) : DiscordUtil.bold("I am reminding you of something.");
             DateTime now = DateTime.Now;
             TimeSpan dif = time - now;
             if(dif.Ticks > 0)
@@ -354,7 +355,7 @@ namespace intelligence_bot
                 context.Message.AddReactionAsync(new Emoji(EmojiUnicode.DATE));
             } else
             {
-                DiscordUtil.replyError(context, "I can't remind you in the past.").Wait();
+                DiscordUtil.replyError(context, $"I can't remind you {DiscordUtil.dynamic_date(time, DiscordUtil.date_format.RELATIVE)}.").Wait();
             }
         }
     }

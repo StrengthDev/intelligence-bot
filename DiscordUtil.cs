@@ -11,6 +11,11 @@ namespace intelligence_bot
 {
     static class DiscordUtil
     {
+        public static string sanitise(string text)
+        {
+            return text.Replace("*", "").Replace("_", "").Replace("`", "").Replace("|", "").Replace("~", "").Trim();
+        }
+
         public static string bold<T>(T v)
         {
             return $"**{v}**";
@@ -59,6 +64,33 @@ namespace intelligence_bot
         public static string full_quote<T>(T v)
         {
             return $">>> {v}";
+        }
+
+        public enum date_format
+        {
+            DAY,            // dd/mm/yyyy
+            DAY_EXTENDED,   // Month dd, yyyy
+            DAY_N_TIME,     // Month dd, yyyy hh:mm
+            DAY_COMPLETE,   // Weekday, Month dd, yyyy hh:mm
+            TIME,           // hh:mm
+            TIME_EXTENDED,  // hh:mm:ss
+            RELATIVE,
+        }
+
+        public static string dynamic_date(DateTime date, date_format format)
+        {
+            char f = 'd';
+            switch (format) 
+            {
+                case date_format.DAY:           f = 'd'; break;
+                case date_format.DAY_EXTENDED:  f = 'D'; break;
+                case date_format.DAY_N_TIME:    f = 'f'; break;
+                case date_format.DAY_COMPLETE:  f = 'F'; break;
+                case date_format.TIME:          f = 't'; break;
+                case date_format.TIME_EXTENDED: f = 'T'; break;
+                case date_format.RELATIVE:      f = 'R'; break;
+            }
+            return $"<t:{((DateTimeOffset)date).ToUnixTimeSeconds()}:{f}>";
         }
 
         public static string statusString(int i)
