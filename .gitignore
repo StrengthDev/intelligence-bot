@@ -33,4 +33,5 @@ packages/
 *.pyc
 
 # Local bot config
+config/
 config.ini

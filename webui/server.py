@@ -1,3 +1,8 @@
+"""
+This package implements a UI for the assistant chatbot as a Web based UI, served in the background, for
+other machines in the same private network.
+"""
+
 import threading
 from ipaddress import ip_address
 from socket import gethostname, gethostbyname

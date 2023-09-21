@@ -1,3 +1,7 @@
+"""
+Simple package defining the :class:`InputReader` class.
+"""
+
 import threading
 import logging as log
 

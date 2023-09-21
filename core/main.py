@@ -1,3 +1,7 @@
+"""
+Entry point for the assistant chatbot.
+"""
+
 import logging as log
 
 from terminal_input import InputReader
@@ -7,6 +11,10 @@ log.basicConfig(level=0)
 
 
 def main() -> None:
+    """
+    Initializes and runs the assistant chatbot until either the program is interrupted or until the exit command
+    is given.
+    """
     ir: InputReader = InputReader()
     ir.start()
 

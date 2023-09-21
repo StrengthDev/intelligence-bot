@@ -1,3 +1,7 @@
+"""
+Package dedicated to defining the main page of the Web UI, which can be imported through the `bp` :class:`Blueprint`.
+"""
+
 from flask import Blueprint, Response
 
 bp = Blueprint('Dashboard', __name__, url_prefix='/')

@@ -5,7 +5,8 @@ description = "Personal discord assistant bot"
 authors = ["Pedro Valente <pedro.amaral.valente@gmail.com>"]
 
 [tool.poetry.scripts]
-intelligence = "core.cli:main"
+intelligence = "core.main:main"
+default_config = "core.generate_config:main"
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -17,3 +18,4 @@ pytest = "^7.4.2"
 
 [build-system]
 requires = ["poetry>=1.0"]
+build-backend = "poetry.core.masonry.api"
