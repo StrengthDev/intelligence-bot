@@ -5,6 +5,7 @@ configuration files for the bot.
 
 from os import path, makedirs
 from typing import TextIO
+from argparse import ArgumentParser, Namespace
 
 
 default_token: str = 'thisisadefaulttokenstringpleasereplacemewithanactualtoken'
@@ -69,14 +70,14 @@ def write_config(directory: str, filename: str, contents: str, overwrite: bool) 
             write_file(full_path, contents)
 
         else:
-            print(f'Skipping {filename}..')
+            print(f'{filename} already exists, skipping..')
 
     else:
         print(f'Generating new {filename} file..')
         write_file(full_path, contents)
 
 
-def main() -> None:
+def run() -> None:
     """
     Creates a `config` folder inside the project directory if one doesn't already exist, and inside the folder
     generates default configuration files necessary for the execution of the assistant chatbot.
@@ -97,8 +98,16 @@ def main() -> None:
     write_config(config_dir, 'commands.ini', default_cmd_config, overwrite)
     write_config(config_dir, 'ask.txt', default_ask, overwrite)
 
-    print('Finished successfully.\n\nPlease do not forget to replace the contents of the TOKEN file with your own '
+    print(f'Files written to: "{path.abspath(config_dir)}"\n')
+    print('Please do not forget to replace the contents of the TOKEN file with your own '
           'Discord bot token, if you haven\'t already.')
+
+
+def main() -> None:
+    """
+    Entry point fot the default config generator, parses arguments from the terminal and starts the generation.
+    """
+    run()
 
 
 if __name__ == '__main__':

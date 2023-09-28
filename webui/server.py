@@ -44,7 +44,7 @@ class UIServer(threading.Thread):
         self.ip: str = gethostbyname(gethostname())
         if not ip_address(self.ip).is_private:
             raise EnvironmentError('Local machine is not in private network, the Web UI is not meant to be '
-                                   'accessible through the internet.')
+                                   'accessible directly through the internet.')
 
         self.app.register_blueprint(static.bp)
         self.app.register_blueprint(dashboard.bp)
