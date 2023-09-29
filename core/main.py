@@ -16,6 +16,7 @@ def run(port: int, use_ui: bool) -> None:
     """
     Initializes and runs the assistant chatbot until either the program is interrupted or until the exit command
     is given.
+
     :param port: Network port from which a Web UI would is served, if there is one.
     :param use_ui: Enables UI if set to `True`.
     """
@@ -39,7 +40,7 @@ def main() -> None:
     Entry point to the assistant chatbot, parses args from the terminal and starts the bot.
     """
     parser: ArgumentParser = ArgumentParser('intelligence', description=metadata('intelligence-bot')['summary'],
-                                            epilog='run using poetry: poetry run intelligence [args ...]')
+                                            epilog='run using poetry: poetry run %(prog)s [args ...]')
     parser.add_argument('-p', '--port', action='store', type=int, default=5000, dest='port',
                         help='the network port from which a Web UI may be served')
     parser.add_argument('-noui', action='store_false', dest='use_ui',
@@ -49,7 +50,3 @@ def main() -> None:
     assert args.port > -1, 'Port must be a positive integer value.'
     assert args.port < (1 << 16), 'Port number must be less than 65536 (max 16-bit unsigned integer).'
     run(args.port, args.use_ui)
-
-
-if __name__ == '__main__':
-    main()
